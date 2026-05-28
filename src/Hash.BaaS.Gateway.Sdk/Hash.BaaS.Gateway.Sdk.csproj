@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Hash.BaaS.Gateway.Sdk</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>HashBank</Authors>
+    <Company>HashBank</Company>
+    <Description>HashBank Bank-as-a-Service Gateway SDK for RFC 9421 Ed25519 request signing and Gateway API integration.</Description>
+    <RepositoryUrl>https://gitlab.services.hashbank.ge/backend-development/baas/hash-baas-gateway-dotnet-sdk</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>hashbank;baas;gateway;http-signatures;rfc9421;ed25519</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSec.Cryptography" Version="25.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

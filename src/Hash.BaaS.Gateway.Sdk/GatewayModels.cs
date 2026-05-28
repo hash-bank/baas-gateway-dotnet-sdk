@@ -1,0 +1,470 @@
+using System.Text.Json.Serialization;
+
+namespace Hash.BaaS.Gateway.Sdk;
+
+public sealed class StatusResponse
+{
+    public string? Status { get; set; }
+    public string? Service { get; set; }
+    public string? Version { get; set; }
+}
+
+public sealed class GetTermsResponse
+{
+    public required TermModel Term { get; init; }
+}
+
+public sealed class TermModel
+{
+    public long? TermId { get; init; }
+    public string? TermName { get; init; }
+    public string? TermContent { get; init; }
+    public string? Url { get; init; }
+}
+
+public sealed class CreatePersonRequest
+{
+    public required CreatePersonModel Person { get; set; }
+}
+
+public sealed class UpdatePersonRequest
+{
+    public required UpdatePersonModel Person { get; set; }
+}
+
+public sealed class CreatePersonResponse
+{
+    public PersonResponseModel Person { get; set; } = null!;
+}
+
+public sealed class GetPersonResponse
+{
+    public PersonResponseModel Person { get; set; } = null!;
+}
+
+public class CreatePersonModel
+{
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public string? OriginalFirstName { get; set; }
+    public string? OriginalLastName { get; set; }
+    public string? MiddleName { get; set; }
+    public string? FatherName { get; set; }
+    public required string BirthDate { get; set; }
+    public required Gender? Gender { get; set; }
+    public required string BirthCity { get; set; }
+    public required string BirthCountryCode { get; set; }
+    public required string CitizenshipCountryCode { get; set; }
+    public string? PersonalNumber { get; set; }
+    public string? Title { get; set; }
+    public string? PersonalNumberIssuerCountryCode { get; set; }
+    public string? SecondaryCitizenshipCountryCode { get; set; }
+    public string? Email { get; set; }
+    public string? Mobile { get; set; }
+    public required string DocumentNumber { get; set; }
+    public required DocumentType? DocumentType { get; set; }
+    public required string DocumentIssueDate { get; set; }
+    public required string DocumentExpiryDate { get; set; }
+    public required string DocumentIssuingAuthority { get; set; }
+    public string? DocumentCountryCode { get; set; }
+    public required string ResidenceCountryCode { get; set; }
+    public required PersonAddressModel Address { get; set; }
+    public required PersonAddressModel LegalAddress { get; set; }
+    public bool? IsBeneficialOwner { get; set; }
+    public bool? IsRepresentedBySomeoneElse { get; set; }
+    public bool? IsPoliticallyExposedPerson { get; set; }
+    public PersonPepDetailsModel? PoliticallyExposedPersonDetails { get; set; }
+    public string? PoliticallyExposedPersonExplanation { get; set; }
+    public bool? IsAdverseMediaInvolved { get; set; }
+    public bool? IsSanctionsRelated { get; set; }
+    public bool HasCrs { get; set; }
+    public PersonCrsCountryModel[]? CrsCountries { get; set; }
+    public bool HasGreenCard { get; set; }
+    public PersonExpectedTurnover? ExpectedTurnover { get; set; }
+    public PersonExpectedMonthlyIncome? ExpectedMonthlyIncome { get; set; }
+    public PersonSourceOfIncome[]? SourcesOfIncome { get; set; }
+    public required PersonExpectedTransactionType[] ExpectedTransactionTypes { get; set; }
+    public PersonAccountOpeningReason[]? AccountOpeningReasons { get; set; }
+    public RiskProfile? RiskProfile { get; set; }
+    public required EmploymentType EmploymentType { get; set; }
+    public EmploymentWorkType? EmploymentWorkType { get; set; }
+    public PersonEmploymentDetailModel[]? EmploymentDetails { get; set; }
+    public bool? IsSoleEntrepreneur { get; set; }
+    public string? EntrepreneurTaxId { get; set; }
+    public string? EntrepreneurBusinessActivity { get; set; }
+    public required string[] AppliedTermAndConditions { get; set; }
+    public string? ExternalId { get; set; }
+    public string? PreferredLanguageCode { get; set; }
+    public string? LoyaltyNumber { get; set; }
+    public string? IpAddress { get; set; }
+    public string? LastVerificationDate { get; set; }
+}
+
+public class UpdatePersonModel
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? OriginalFirstName { get; set; }
+    public string? OriginalLastName { get; set; }
+    public string? MiddleName { get; set; }
+    public string? FatherName { get; set; }
+    public string? BirthDate { get; set; }
+    public Gender? Gender { get; set; }
+    public string? BirthCity { get; set; }
+    public string? BirthCountryCode { get; set; }
+    public string? Nationality { get; set; }
+    public string? PersonalNumber { get; set; }
+    public string? PersonalNumberIssuer { get; set; }
+    public string? SecondaryCitizenshipCountryCode { get; set; }
+    public string? Title { get; set; }
+    public string? Email { get; set; }
+    public string? Mobile { get; set; }
+    public string? DocumentNumber { get; set; }
+    public DocumentType? DocumentType { get; set; }
+    public string? DocumentIssueDate { get; set; }
+    public string? DocumentExpiryDate { get; set; }
+    public string? DocumentIssuingAuthority { get; set; }
+    public string? DocumentCountryCode { get; set; }
+    public string? ResidenceCountryCode { get; set; }
+    public PersonAddressModel? Address { get; set; }
+    public PersonAddressModel? LegalAddress { get; set; }
+    public bool? IsBeneficialOwner { get; set; }
+    public bool? IsRepresentedBySomeoneElse { get; set; }
+    public bool? IsPoliticallyExposedPerson { get; set; }
+    public PersonPepDetailsModel? PepDetails { get; set; }
+    public string? PoliticallyExposedPersonExplanation { get; set; }
+    public bool? IsAdverseMediaInvolved { get; set; }
+    public bool? IsSanctionsRelated { get; set; }
+    public bool? HasCrs { get; set; }
+    public bool? HasGreenCard { get; set; }
+    public PersonCrsCountryModel[]? CrsCountries { get; set; }
+    public PersonExpectedTurnover? ExpectedTurnover { get; set; }
+    public string? ExpectedMonthlyIncomeCode { get; set; }
+    public PersonSourceOfIncome[]? SourcesOfIncome { get; set; }
+    public PersonExpectedTransactionType[]? ExpectedTransactionTypes { get; set; }
+    public PersonAccountOpeningReason[]? AccountOpeningReasons { get; set; }
+    public RiskProfile? RiskProfile { get; set; }
+    public int? EmploymentTypeId { get; set; }
+    public PersonEmploymentDetailModel[]? EmploymentDetails { get; set; }
+    public bool? IsEntrepreneur { get; set; }
+    public string? EntrepreneurTaxId { get; set; }
+    public string? EntrepreneurBusinessActivity { get; set; }
+    public string? ExternalId { get; set; }
+    public string? PreferredLanguageCode { get; set; }
+    public string? LoyaltyNumber { get; set; }
+    public string? IpAddress { get; set; }
+    public string? LastVerificationDate { get; set; }
+}
+
+public sealed class PersonAddressModel
+{
+    public required string Address1 { get; set; }
+    public string? Address2 { get; set; }
+    public required string City { get; set; }
+    public string? PostalCode { get; set; }
+    public required string CountryCode { get; set; }
+}
+
+public sealed class PersonCrsCountryModel
+{
+    public string? CountryCode { get; set; }
+    public string? Tin { get; set; }
+}
+
+public sealed class PersonEmploymentDetailModel
+{
+    public required string CompanyName { get; set; }
+    public required string Position { get; set; }
+    public required BusinessActivityType BusinessActivityType { get; set; }
+    public required string TaxId { get; set; }
+    public string? Comment { get; set; }
+}
+
+public sealed class PersonPepDetailsModel
+{
+    public string? PepType { get; set; }
+    public string? PepPosition { get; set; }
+    public string? PepConnectionType { get; set; }
+    public string? PepName { get; set; }
+    public string? PepSurname { get; set; }
+}
+
+public class PersonResponseModel : UpdatePersonModel
+{
+    public string Id { get; set; } = null!;
+    public long[]? AppliedTermIds { get; set; }
+    public PersonStatus? Status { get; set; }
+    public KycStatus? KycStatus { get; set; }
+    public string? CreatedAt { get; set; }
+    public string? UpdatedAt { get; set; }
+}
+
+public sealed class CreateKycCheckRequest
+{
+    public string PersonId { get; set; } = null!;
+    public string ApplicantId { get; set; } = null!;
+    public IdvResultDto? IdvResult { get; set; }
+}
+
+public sealed class CreateKycCheckResponse
+{
+    public string KycCheckId { get; set; } = null!;
+    public KycCheckStatus? Status { get; set; }
+}
+
+public sealed class GetKycCheckResponse
+{
+    public KycCheckDto KycCheck { get; set; } = null!;
+}
+
+public sealed class IdvResultDto
+{
+    public IdvResultSource? Source { get; set; }
+    public IdvResultStatus? Status { get; set; }
+    public string? ReportLink { get; set; }
+    public string? CreatedAt { get; set; }
+}
+
+public sealed class KycCheckDto
+{
+    public string Id { get; set; } = null!;
+    public string PersonId { get; set; } = null!;
+    public string? ApplicantId { get; set; }
+    public KycCheckStatus? Status { get; set; }
+    public KycCheckRejectReason? RejectReason { get; set; }
+    public string? RejectReasonComment { get; set; }
+    public IdvResultDto? IdvResult { get; set; }
+    public string? CreatedAt { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? UpdatedAt { get; set; }
+    public string? UpdatedBy { get; set; }
+}
+
+public sealed class UploadKycDocumentRequest
+{
+    public required string KycCheckId { get; set; }
+    public required IdvDocumentType Type { get; set; }
+    public required Stream FileContent { get; set; }
+    public required string FileName { get; set; }
+    public string ContentType { get; set; } = "application/octet-stream";
+    public IdvDocumentSubtype? Subtype { get; set; }
+    public string? Number { get; set; }
+    public string? Issuer { get; set; }
+}
+
+public sealed class UploadKycDocumentResponse
+{
+    public string KycDocumentId { get; set; } = null!;
+}
+
+public sealed class CreateAccountRequest
+{
+    public required string PersonId { get; set; }
+    public string? CurrencyCode { get; set; }
+    public string? ExternalId { get; set; }
+    public string? Name { get; set; }
+}
+
+public sealed class CloseAccountPatchRequest
+{
+    public required AccountCloseReason CloseReason { get; set; }
+}
+
+public sealed class CreateAccountResponse
+{
+    public required AccountModel Account { get; set; }
+}
+
+public sealed class GetAccountResponse
+{
+    public AccountModel Account { get; set; } = null!;
+}
+
+public sealed class GetAccountCardsResponse
+{
+    public IReadOnlyList<CardResponseModel> Cards { get; set; } = [];
+    public int TotalRecordsNumber { get; set; }
+}
+
+public sealed class AccountModel
+{
+    public string Id { get; set; } = null!;
+    public string? PersonId { get; set; }
+    public string? CurrencyCode { get; set; }
+    public string? ExternalId { get; set; }
+    public string? Name { get; set; }
+    public AccountStatus? Status { get; set; }
+    public double? Balance { get; set; }
+    public double? BlockedAmount { get; set; }
+    public double? AvailableAmount { get; set; }
+    public int? CardsCount { get; set; }
+    public string? ReferenceNumber { get; set; }
+    public AccountCloseReason? CloseReason { get; set; }
+    public string? CreatedAt { get; set; }
+    public string? UpdatedAt { get; set; }
+}
+
+public sealed class CreateCardRequest
+{
+    public CreateCardModel Card { get; set; } = null!;
+}
+
+public sealed class CreateCardModel
+{
+    public required CardType Type { get; set; }
+    public required string AccountId { get; set; }
+    public string? EmbossingName { get; set; }
+    public required string PersonalizationProductCode { get; set; }
+    public string? ExternalId { get; set; }
+    public string? EncryptedPin { get; set; }
+    public CreateCardDeliveryAddress? DeliveryAddress { get; set; }
+    public string? Comment { get; set; }
+    public bool? IsDisposable { get; set; }
+    public bool? DisableAutomaticRenewal { get; set; }
+    public object? Limits { get; set; }
+}
+
+public sealed class CreateCardDeliveryAddress
+{
+    public required string Address1 { get; set; }
+    public string? Address2 { get; set; }
+    public required string City { get; set; }
+    public required string PostalCode { get; set; }
+    public required string CountryCode { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Phone { get; set; }
+    public string? DispatchMethod { get; set; }
+}
+
+public sealed class CreateCardResponse
+{
+    public CardResponseModel Card { get; set; } = null!;
+}
+
+public sealed class GetCardResponse
+{
+    public CardResponseModel Card { get; set; } = null!;
+}
+
+public sealed class ActivateCardResponse
+{
+    public CardResponseModel Card { get; set; } = null!;
+}
+
+public sealed class BlockCardRequest
+{
+    [JsonPropertyName("block_type")]
+    public ApiBlockType BlockType { get; set; }
+}
+
+public sealed class BlockCardResponse
+{
+    public CardResponseModel Card { get; set; } = null!;
+}
+
+public sealed class UnblockCardResponse
+{
+    public CardResponseModel Card { get; set; } = null!;
+}
+
+public sealed class ResetPinCounterResponse
+{
+    public bool Success { get; set; } = true;
+}
+
+public sealed class DigitalCardViewResponse
+{
+    public DigitalCardWebViewLaunch WebView { get; set; } = null!;
+}
+
+public sealed class DigitalCardWebViewLaunch
+{
+    public string Method { get; set; } = "POST";
+    public string Url { get; set; } = null!;
+    public string ContentType { get; set; } = "application/x-www-form-urlencoded";
+    public IDictionary<string, string> FormFields { get; set; } = new Dictionary<string, string>();
+}
+
+public sealed class GeneratePinKeyRequest
+{
+    public PinKeyRequestModel PinKeyRequest { get; set; } = new();
+}
+
+public sealed class PinKeyRequestModel
+{
+    public string? ChannelId { get; set; }
+    public string? Language { get; set; }
+    public string? DeviceId { get; set; }
+}
+
+public sealed class GeneratePinKeyResponse
+{
+    public PinKeyResponseModel PinKey { get; set; } = null!;
+}
+
+public sealed class PinKeyResponseModel
+{
+    public string RequestId { get; set; } = string.Empty;
+    public string PublicKey { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+}
+
+public sealed class SetPinRequest
+{
+    public PinSetRequestModel PinSet { get; set; } = new();
+}
+
+public sealed class PinSetRequestModel
+{
+    public string RequestId { get; set; } = string.Empty;
+    public string PinBlock { get; set; } = string.Empty;
+    public string EncryptedSessionZpk { get; set; } = string.Empty;
+}
+
+public sealed class SetPinResponse
+{
+    public PinSetResponseModel PinSet { get; set; } = null!;
+}
+
+public sealed class PinSetResponseModel
+{
+    public string RequestId { get; set; } = string.Empty;
+    public int ResultCode { get; set; }
+}
+
+public sealed class CardResponseModel
+{
+    public string Id { get; set; } = null!;
+    public CardType Type { get; set; }
+    public CardStatus Status { get; set; }
+    public string AccountId { get; set; } = null!;
+    public string? PersonId { get; set; }
+    public string? ExternalId { get; set; }
+    public string? MaskedCardNumber { get; set; }
+    public string? EmbossingName { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public string? BlockType { get; set; }
+    public object? Limits { get; set; }
+    public CardDeliveryAddress? DeliveryAddress { get; set; }
+    public DateTime? DispatchedAt { get; set; }
+    public DateTime? ActivatedAt { get; set; }
+    public string? PersonalizationProductCode { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string? CreatedBy { get; set; }
+    public bool IsDisposable { get; set; }
+    public bool RenewAutomatically { get; set; } = true;
+    public string? PredecessorCardId { get; set; }
+}
+
+public sealed class CardDeliveryAddress
+{
+    public string? Address1 { get; set; }
+    public string? Address2 { get; set; }
+    public string? City { get; set; }
+    public string? PostalCode { get; set; }
+    public string? CountryCode { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Phone { get; set; }
+}
