@@ -1,25 +1,23 @@
-# Hash BaaS Gateway SDK
+# Hash BaaS Gateway .NET SDK
 
 ![SDK](https://img.shields.io/badge/SDK-Hash%20BaaS-111827?style=for-the-badge)
 ![.NET](https://img.shields.io/badge/.NET-8%20%7C%2010-512BD4?style=for-the-badge&logo=dotnet)
-![Java](https://img.shields.io/badge/Java-17%2B-F89820?style=for-the-badge&logo=openjdk)
 ![RFC 9421](https://img.shields.io/badge/RFC%209421-HTTP%20Signatures-0F766E?style=for-the-badge)
 ![Ed25519](https://img.shields.io/badge/Ed25519-Signatures-1F2937?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-0A0A0A?style=for-the-badge)
 
-Production-ready client SDKs for Hash BaaS Gateway authorization, request signing, response verification, and Gateway API usage.
+Production-ready .NET SDK and NuGet package for Hash BaaS Gateway authorization, request signing, response verification, and Gateway API usage.
 
 The SDK removes the low-level complexity of Hash BaaS Gateway integration:
 
-- 🔐 Generates and validates Ed25519 key pairs.
-- 🧾 Signs requests using the Hash BaaS RFC 9421 profile.
-- 🧩 Adds required Gateway headers consistently.
-- 🛡️ Adds `Content-Digest` and `Idempotency-Key` for mutating requests.
-- ✅ Verifies signed Gateway responses when the platform public key is configured.
-- 🚀 Provides a typed .NET Gateway client for the full v1 flow.
-- ☕ Provides a Java signing client for JVM integrations.
+- Generates and validates Ed25519 key pairs.
+- Signs requests using the Hash BaaS RFC 9421 profile.
+- Adds required Gateway headers consistently.
+- Adds `Content-Digest` and `Idempotency-Key` for mutating requests.
+- Verifies signed Gateway responses when the platform public key is configured.
+- Provides a typed .NET Gateway client for the full v1 flow.
 
-> Store production private keys in your secret manager. Do not commit private keys or paste production keys into browser tooling.
+Store production private keys in your secret manager. Do not commit private keys or paste production keys into browser tooling.
 
 ## Contents
 
@@ -28,7 +26,6 @@ The SDK removes the low-level complexity of Hash BaaS Gateway integration:
 - [Gateway Authorization Model](#gateway-authorization-model)
 - [.NET Quick Start](#net-quick-start)
 - [.NET Typed Gateway Client](#net-typed-gateway-client)
-- [Java Quick Start](#java-quick-start)
 - [Request Signing Profile](#request-signing-profile)
 - [Response Verification](#response-verification)
 - [Configuration Reference](#configuration-reference)
@@ -43,7 +40,7 @@ The SDK removes the low-level complexity of Hash BaaS Gateway integration:
 sequenceDiagram
     autonumber
     participant App as Client Application
-    participant SDK as Hash BaaS Gateway SDK
+    participant SDK as Hash BaaS Gateway .NET SDK
     participant Portal as Developer Portal
     participant Gateway as Hash BaaS Gateway
 
@@ -63,19 +60,12 @@ sequenceDiagram
 
 | SDK | Status | Runtime | Scope |
 | --- | --- | --- | --- |
-| `.NET` | ✅ Ready | `.NET 8`, `.NET 10` | Full typed Gateway v1 client, request signing, response verification, key generation |
-| `Java` | ✅ Ready | `Java 17+` | Key generation, RFC 9421 request signing, signed `HttpClient` requests |
+| `.NET` | Ready | `.NET 8`, `.NET 10` | Full typed Gateway v1 client, request signing, response verification, key generation |
 
 Repository name:
 
 ```text
 hash-baas-gateway-dotnet-sdk
-```
-
-Public repository:
-
-```text
-https://github.com/hash-bank/hash-baas-gateway-dotnet-sdk.git
 ```
 
 ## Gateway Authorization Model
@@ -105,18 +95,16 @@ The SDK signs the product definition code exactly as sent in `X-Product-Code`.
 
 ## .NET Quick Start
 
-### Install
-
-Until the NuGet package is published, reference the project directly:
-
-```bash
-dotnet add reference ../hash-baas-gateway-dotnet-sdk/src/Hash.BaaS.Gateway.Sdk/Hash.BaaS.Gateway.Sdk.csproj
-```
-
-After NuGet publishing:
+### Install from NuGet
 
 ```bash
 dotnet add package Hash.BaaS.Gateway.Sdk
+```
+
+For local development before publishing a new package version, reference the project directly:
+
+```bash
+dotnet add reference ../hash-baas-gateway-dotnet-sdk/src/Hash.BaaS.Gateway.Sdk/Hash.BaaS.Gateway.Sdk.csproj
 ```
 
 ### Generate Keys
@@ -274,56 +262,6 @@ catch (GatewayApiException ex)
 }
 ```
 
-## Java Quick Start
-
-The Java SDK is located here:
-
-```text
-java
-```
-
-It supports Java 17+ and uses only standard JDK APIs.
-
-Generate keys:
-
-```java
-import ge.hashbank.baas.gateway.GatewayKeyGenerator;
-import ge.hashbank.baas.gateway.GatewayKeyPair;
-
-GatewayKeyPair keyPair = GatewayKeyGenerator.generate();
-
-System.out.println(keyPair.keyId());
-System.out.println(keyPair.publicKeyPem());
-System.out.println(keyPair.privateKeyPem());
-```
-
-Create a signed Gateway client:
-
-```java
-import ge.hashbank.baas.gateway.GatewaySdkOptions;
-import ge.hashbank.baas.gateway.HashBaasGatewayClient;
-
-GatewaySdkOptions options = GatewaySdkOptions.builder()
-    .baseAddress("https://gateway.example.com/")
-    .clientId("00000000-0000-0000-0000-000000000000")
-    .productCode("TEST_PRODUCT")
-    .privateKeyPem(privateKeyPem)
-    .publicKeyPem(publicKeyPem)
-    .auditUserId("my-service")
-    .auditSourceType("Backend")
-    .build();
-
-HashBaasGatewayClient client = new HashBaasGatewayClient(options);
-
-var response = client.send("GET", "/v1/terms", null, "application/json");
-```
-
-See Java-specific instructions:
-
-```text
-java/README.md
-```
-
 ## Request Signing Profile
 
 Body-less requests sign:
@@ -437,25 +375,22 @@ net10.0
 
 ```text
 hash-baas-gateway-dotnet-sdk/
-├─ src/
-│  └─ Hash.BaaS.Gateway.Sdk/        # .NET SDK
-├─ java/                            # Java SDK
-│  ├─ pom.xml
-│  └─ src/main/java/ge/hashbank/baas/gateway/
-├─ README.md
-└─ LICENSE
+|-- src/
+|   `-- Hash.BaaS.Gateway.Sdk/        # .NET SDK and NuGet package source
+|-- README.md
+`-- LICENSE
 ```
 
 ## Security Checklist
 
-- ✅ Use separate keys for development, staging, and production.
-- ✅ Register only public keys in Developer Portal.
-- ✅ Store private keys in a secret manager or secure environment configuration.
-- ✅ Rotate keys periodically.
-- ✅ Validate key pairs before deployment.
-- ✅ Use response verification when the platform public key is available.
-- ❌ Do not commit private keys.
-- ❌ Do not reuse demo keys in production.
+- Use separate keys for development, staging, and production.
+- Register only public keys in Developer Portal.
+- Store private keys in a secret manager or secure environment configuration.
+- Rotate keys periodically.
+- Validate key pairs before deployment.
+- Use response verification when the platform public key is available.
+- Do not commit private keys.
+- Do not reuse demo keys in production.
 
 ## License
 
