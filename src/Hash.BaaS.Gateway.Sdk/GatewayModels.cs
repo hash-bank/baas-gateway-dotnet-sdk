@@ -468,3 +468,203 @@ public sealed class CardDeliveryAddress
     public string? LastName { get; set; }
     public string? Phone { get; set; }
 }
+
+public sealed class CreateCorporateAccountRequest
+{
+    public CreateCorporateAccountModel Account { get; set; } = null!;
+}
+
+public sealed class CreateCorporateAccountModel
+{
+    public required IReadOnlyList<string> CurrencyCodes { get; set; }
+    public string? Name { get; set; }
+    public string? ExternalId { get; set; }
+}
+
+public sealed class CreateCorporateAccountResponse
+{
+    public IReadOnlyList<CorporateAccountModel> Accounts { get; set; } = [];
+}
+
+public sealed class ListCorporateAccountsResponse
+{
+    public IReadOnlyList<CorporateAccountModel> Accounts { get; set; } = [];
+    public int TotalRecordsNumber { get; set; }
+}
+
+public sealed class GetCorporateAccountResponse
+{
+    public CorporateAccountModel Account { get; set; } = null!;
+}
+
+public sealed class RenameCorporateAccountRequest
+{
+    public RenameCorporateAccountModel Account { get; set; } = null!;
+}
+
+public sealed class RenameCorporateAccountModel
+{
+    public required string Name { get; set; }
+}
+
+public sealed class AddCorporateAccountCurrencyRequest
+{
+    public required string CurrencyCode { get; set; }
+}
+
+public sealed class CloseCorporateAccountRequest
+{
+    public AccountCloseReason? CloseReason { get; set; }
+}
+
+public sealed class CorporateAccountModel
+{
+    public Guid AccountId { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public string? ExternalId { get; set; }
+    public string? Name { get; set; }
+    public AccountStatus Status { get; set; }
+    public decimal Balance { get; set; }
+    public decimal BlockedAmount { get; set; }
+    public decimal AvailableAmount { get; set; }
+    public int CardsCount { get; set; }
+    public string? ReferenceNumber { get; set; }
+    public AccountCloseReason? CloseReason { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+}
+
+public sealed class CreateCorporateCardRequest
+{
+    public CreateCorporateCardModel Card { get; set; } = new();
+}
+
+public sealed class CreateCorporateCardModel
+{
+    public string? AccountNumber { get; set; }
+    public string? Currency { get; set; }
+    public int CardDesignTypeId { get; set; }
+    public bool IsVirtual { get; set; }
+    public int? PackageId { get; set; }
+    public int? TermId { get; set; }
+    public string? Comment { get; set; }
+    public string? NameOnCard { get; set; }
+    public CreateCorporateCardDeliveryAddress? DeliveryAddress { get; set; }
+    public AssigneePersonModel? Assignee { get; set; }
+    public string? ExternalId { get; set; }
+}
+
+public sealed class CreateCorporateCardDeliveryAddress
+{
+    public string? CountryCode { get; set; }
+    public long? CityId { get; set; }
+    public string? City { get; set; }
+    public string? Address { get; set; }
+    public string? PostalCode { get; set; }
+}
+
+public sealed class AssigneePersonModel
+{
+    public string? Name { get; set; }
+    public string? Surname { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
+    public string? CitizenshipCountryCode { get; set; }
+    public string? PersonalId { get; set; }
+    public string? PassportNumber { get; set; }
+    public string? Phone { get; set; }
+}
+
+public sealed class CreateCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class ListCorporateCardDesignTypesResponse
+{
+    public IReadOnlyList<CorporateCardDesignTypeModel> DesignTypes { get; set; } = [];
+}
+
+public sealed class CorporateCardDesignTypeModel
+{
+    public int DesignId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsVirtual { get; set; }
+    public bool IsPhysical { get; set; }
+    public bool HasInstant { get; set; }
+    public string? CardBinTypeCode { get; set; }
+}
+
+public sealed class ListCorporateCardsResponse
+{
+    public IReadOnlyList<CorporateCardModel> Cards { get; set; } = [];
+    public int TotalCount { get; set; }
+    public int FromRecord { get; set; }
+    public int RecordsCount { get; set; }
+}
+
+public sealed class GetCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class FreezeCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class UnfreezeCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class ActivateCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class CloseCorporateCardResponse
+{
+    public CorporateCardModel Card { get; set; } = null!;
+}
+
+public sealed class CorporateCardModel
+{
+    public Guid CardId { get; set; }
+    public Guid AccountId { get; set; }
+    public CardStatus Status { get; set; }
+    public CardType Type { get; set; }
+    public string? MaskedPan { get; set; }
+    public int? ExpiryMonth { get; set; }
+    public int? ExpiryYear { get; set; }
+    public string? CardholderName { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? ActivatedAt { get; set; }
+    public DateTimeOffset? ClosedAt { get; set; }
+}
+
+public sealed class ListCorporateTransactionsResponse
+{
+    public IReadOnlyList<CorporateTransactionModel> Transactions { get; set; } = [];
+    public int TotalCount { get; set; }
+    public int FromRecord { get; set; }
+    public int RecordsCount { get; set; }
+}
+
+public sealed class GetCorporateTransactionResponse
+{
+    public CorporateTransactionModel Transaction { get; set; } = null!;
+}
+
+public sealed class CorporateTransactionModel
+{
+    public long TransactionId { get; set; }
+    public Guid CardId { get; set; }
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = string.Empty;
+    public TransactionStatus Status { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string? MerchantName { get; set; }
+    public string? MerchantCategory { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}

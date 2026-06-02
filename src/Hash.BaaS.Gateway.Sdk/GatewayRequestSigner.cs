@@ -30,11 +30,18 @@ public static class GatewayRequestSigner
             throw new InvalidOperationException("RequestUri must be an absolute URI before signing.");
 
         var isBodyBearing = IsUnsafeMethod(request);
+        var isCorporateRequest = IsCorporateRequest(request);
 
         UpsertHeader(request, "X-Product-Code", options.ProductCode);
-        UpsertHeader(request, "X-Client-Id", options.ClientId);
+        if (isCorporateRequest)
+            request.Headers.Remove("X-Client-Id");
+        else
+            UpsertHeader(request, "X-Client-Id", options.ClientId);
         UpsertHeader(request, "X-Audit-Source-Type", options.AuditSourceType);
         UpsertHeader(request, "X-Audit-User-Id", options.AuditUserId);
+
+        if (isCorporateRequest && !TryGetHeader(request, "Authorization", out _))
+            throw new InvalidOperationException("Corporate Gateway requests require a Bearer token in the Authorization header.");
 
         string? contentDigest = null;
         string? contentType = null;
@@ -58,7 +65,7 @@ public static class GatewayRequestSigner
             }
         }
 
-        var componentNames = BuildComponentNames(isBodyBearing);
+        var componentNames = BuildComponentNames(isBodyBearing, isCorporateRequest);
         var created = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var expires = created + options.MaxSignatureLifetimeSeconds;
 
@@ -114,7 +121,13 @@ public static class GatewayRequestSigner
             || (method == HttpMethod.Delete && request.Content is not null);
     }
 
-    private static List<string> BuildComponentNames(bool isBodyBearing)
+    private static bool IsCorporateRequest(HttpRequestMessage request)
+    {
+        var path = request.RequestUri?.AbsolutePath ?? string.Empty;
+        return path.StartsWith("/v1/corporate/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<string> BuildComponentNames(bool isBodyBearing, bool isCorporateRequest)
     {
         var names = new List<string> { "@method", "@target-uri", "@authority" };
         if (isBodyBearing)
@@ -124,9 +137,12 @@ public static class GatewayRequestSigner
         }
 
         names.Add("x-product-code");
-        names.Add("x-client-id");
+        if (!isCorporateRequest)
+            names.Add("x-client-id");
         names.Add("x-audit-source-type");
         names.Add("x-audit-user-id");
+        if (isCorporateRequest)
+            names.Add("authorization");
 
         if (isBodyBearing)
             names.Add("idempotency-key");

@@ -14,7 +14,7 @@ The SDK removes the low-level complexity of Hash BaaS Gateway integration:
 - Signs requests using the Hash BaaS RFC 9421 profile.
 - Adds required Gateway headers consistently.
 - Adds `Content-Digest` and `Idempotency-Key` for mutating requests.
-- Verifies signed Gateway responses when the platform public key is configured.
+- Provides manual signed-response verification helper.
 - Provides a typed .NET Gateway client for the full v1 flow.
 
 Store production private keys in your secret manager. Do not commit private keys or paste production keys into browser tooling.
@@ -72,7 +72,7 @@ hash-baas-gateway-dotnet-sdk
 
 Hash BaaS Gateway uses signed HTTP requests instead of bearer-token authorization for partner-facing Gateway operations.
 
-Every Gateway request must include:
+Embedded Gateway requests must include:
 
 | Header / Option | Example | Description |
 | --- | --- | --- |
@@ -92,6 +92,21 @@ X-Client-Id + X-Product-Code
 ```
 
 The SDK signs the product definition code exactly as sent in `X-Product-Code`.
+
+Corporate Gateway requests use the same HTTP signature profile plus a corporate Bearer token. The SDK automatically signs the `Authorization` header on corporate calls and does not send `X-Client-Id` on `v1/corporate/*` routes.
+
+Corporate Gateway requests must include:
+
+| Header / Option | Example | Description |
+| --- | --- | --- |
+| `Authorization` | `Bearer eyJ...` | Corporate customer access token |
+| `X-Product-Code` | `TEST_PRODUCT` | Product definition code received by Gateway |
+| `X-Audit-User-Id` | `my-service` | Calling service or user identifier |
+| `X-Audit-Source-Type` | `Backend` | Calling channel |
+| `Signature-Input` | `sig1=(...)` | RFC 9421 signature metadata, including `authorization` |
+| `Signature` | `sig1=:...:` | Ed25519 signature |
+| `Content-Digest` | `sha-256=:...:` | Required for body-bearing and mutating requests |
+| `Idempotency-Key` | GUID | Required for mutating requests |
 
 ## .NET Quick Start
 
@@ -150,8 +165,7 @@ var options = new GatewaySdkOptions
     PrivateKeyPem = privateKeyPem,
     PublicKeyPem = publicKeyPem,
     AuditUserId = "my-service",
-    AuditSourceType = "Backend",
-    ResponseSigningPublicKeyPem = gatewayPlatformPublicKeyPem
+    AuditSourceType = "Backend"
 };
 
 var gateway = HashBaasGatewayClient.Create(options);
@@ -246,6 +260,117 @@ await gateway.SetPinAsync(card.Card.Id, new SetPinRequest
 });
 ```
 
+### Corporate Accounts
+
+Corporate endpoints require a Bearer token issued for the corporate customer. Pass it to each corporate method; the SDK signs the token-bearing request correctly.
+
+```csharp
+var bearerToken = "<corporate-access-token>";
+
+var createdAccounts = await gateway.CreateCorporateAccountsAsync(
+    bearerToken,
+    new CreateCorporateAccountRequest
+    {
+        Account = new CreateCorporateAccountModel
+        {
+            CurrencyCodes = ["GEL", "USD"],
+            Name = "Corporate Operating Account",
+            ExternalId = "corp-account-001"
+        }
+    });
+
+var accounts = await gateway.ListCorporateAccountsAsync(
+    bearerToken,
+    currency: "GEL",
+    statuses: [AccountStatus.Active]);
+
+var accountId = accounts.Accounts[0].AccountId;
+await gateway.GetCorporateAccountAsync(bearerToken, accountId);
+await gateway.RenameCorporateAccountAsync(
+    bearerToken,
+    accountId,
+    new RenameCorporateAccountRequest
+    {
+        Account = new RenameCorporateAccountModel { Name = "Updated Corporate Account" }
+    });
+await gateway.AddCorporateAccountCurrencyAsync(
+    bearerToken,
+    accountId,
+    new AddCorporateAccountCurrencyRequest { CurrencyCode = "EUR" });
+```
+
+Close is terminal:
+
+```csharp
+await gateway.CloseCorporateAccountAsync(
+    bearerToken,
+    accountId,
+    new CloseCorporateAccountRequest { CloseReason = AccountCloseReason.ClosedByClient });
+```
+
+### Corporate Cards
+
+```csharp
+var designTypes = await gateway.ListCorporateCardDesignTypesAsync(bearerToken);
+
+var createdCard = await gateway.CreateCorporateCardAsync(
+    bearerToken,
+    new CreateCorporateCardRequest
+    {
+        Card = new CreateCorporateCardModel
+        {
+            AccountNumber = "GE12NB0000000123456789",
+            Currency = "GEL",
+            CardDesignTypeId = designTypes.DesignTypes[0].DesignId,
+            IsVirtual = true,
+            ExternalId = "corp-card-001",
+            NameOnCard = "GIORGI BERIDZE",
+            Assignee = new AssigneePersonModel
+            {
+                Name = "Giorgi",
+                Surname = "Beridze",
+                DateOfBirth = new DateOnly(1988, 6, 14),
+                CitizenshipCountryCode = "GE",
+                PersonalId = "01023456789",
+                Phone = "+995555111111"
+            }
+        }
+    });
+
+var cards = await gateway.ListCorporateCardsAsync(
+    bearerToken,
+    accountId: accountId,
+    cardStatuses: [CardStatus.Active, CardStatus.Blocked]);
+
+var cardId = cards.Cards[0].CardId;
+await gateway.GetCorporateCardAsync(bearerToken, cardId);
+await gateway.ActivateCorporateCardAsync(bearerToken, cardId);
+await gateway.FreezeCorporateCardAsync(bearerToken, cardId);
+await gateway.UnfreezeCorporateCardAsync(bearerToken, cardId);
+await gateway.CloseCorporateCardAsync(bearerToken, cardId);
+```
+
+### Corporate Transactions
+
+```csharp
+var transactions = await gateway.ListCorporateTransactionsAsync(
+    bearerToken,
+    cardId: cardId,
+    accountNumber: "GE00...",
+    currency: "GEL",
+    transactionStatuses: [TransactionStatus.Posted],
+    currencyCode: "USD",
+    fromDate: new DateOnly(2026, 1, 1),
+    toDate: new DateOnly(2026, 12, 31));
+
+if (transactions.Transactions.Count > 0)
+{
+    await gateway.GetCorporateTransactionAsync(
+        bearerToken,
+        transactions.Transactions[0].TransactionId);
+}
+```
+
 ### Error Handling
 
 Non-success responses throw `GatewayApiException` and keep the raw Gateway response:
@@ -271,12 +396,28 @@ Body-less requests sign:
 "x-product-code" "x-client-id" "x-audit-source-type" "x-audit-user-id"
 ```
 
+Corporate body-less requests sign:
+
+```text
+"@method" "@target-uri" "@authority"
+"x-product-code" "x-audit-source-type" "x-audit-user-id" "authorization"
+```
+
 Body-bearing and mutating requests sign:
 
 ```text
 "@method" "@target-uri" "@authority"
 "content-digest" "content-type"
 "x-product-code" "x-client-id" "x-audit-source-type" "x-audit-user-id"
+"idempotency-key"
+```
+
+Corporate body-bearing and mutating requests sign:
+
+```text
+"@method" "@target-uri" "@authority"
+"content-digest" "content-type"
+"x-product-code" "x-audit-source-type" "x-audit-user-id" "authorization"
 "idempotency-key"
 ```
 
@@ -298,9 +439,7 @@ For `POST`, `PUT`, `PATCH`, and `DELETE`, the SDK automatically adds:
 
 ## Response Verification
 
-If `ResponseSigningPublicKeyPem` is configured in .NET options, the typed client verifies signed Gateway responses automatically.
-
-Manual response verification is also available:
+Manual response verification is available when you have the Gateway platform public key:
 
 ```csharp
 var verification = await GatewayResponseVerifier.VerifyAsync(
@@ -333,8 +472,7 @@ Verification checks:
     "PrivateKeyPem": "-----BEGIN PRIVATE KEY-----...",
     "PublicKeyPem": "-----BEGIN PUBLIC KEY-----...",
     "AuditUserId": "my-service",
-    "AuditSourceType": "Backend",
-    "ResponseSigningPublicKeyPem": "-----BEGIN PUBLIC KEY-----..."
+    "AuditSourceType": "Backend"
   }
 }
 ```
@@ -348,7 +486,6 @@ Verification checks:
 | `PublicKeyPem` | Yes | Ed25519 SPKI public key registered in Developer Portal |
 | `AuditUserId` | Yes | Calling service/user identifier |
 | `AuditSourceType` | Yes | Calling channel, usually `Backend` |
-| `ResponseSigningPublicKeyPem` | No | Gateway platform public key for response verification |
 
 ## Packaging
 
