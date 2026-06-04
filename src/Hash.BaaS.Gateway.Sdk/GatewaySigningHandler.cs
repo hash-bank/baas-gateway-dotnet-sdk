@@ -1,7 +1,7 @@
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// HttpClient handler that signs every outgoing Hash BaaS Gateway request.
+/// HttpClient handler that signs every outgoing HashBank Gateway request.
 /// </summary>
 public sealed class GatewaySigningHandler : DelegatingHandler
 {

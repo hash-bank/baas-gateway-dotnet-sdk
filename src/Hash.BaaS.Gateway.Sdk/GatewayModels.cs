@@ -14,6 +14,22 @@ public sealed class GetTermsResponse
     public required TermModel Term { get; init; }
 }
 
+public sealed class CountryOnboardingRequirementsResponse
+{
+    public IReadOnlyList<CountryOnboardingRequirementModel> Countries { get; set; } = [];
+}
+
+public sealed class CountryOnboardingRequirementModel
+{
+    public string? CountryCode { get; set; }
+    public string? Name { get; set; }
+    public bool IsCountryServed { get; set; }
+    public bool CanSubmitPerson { get; set; }
+    public string? RiskGroupCode { get; set; }
+    public bool IsHighRisk { get; set; }
+    public bool RequiresResidencePermitForPassportIdentification { get; set; }
+}
+
 public sealed class TermModel
 {
     public long? TermId { get; init; }
@@ -495,6 +511,54 @@ public sealed class ListCorporateAccountsResponse
 public sealed class GetCorporateAccountResponse
 {
     public CorporateAccountModel Account { get; set; } = null!;
+}
+
+public sealed class GetCorporateAccountBalancesResponse
+{
+    public CorporateAccountBalancesModel Balances { get; set; } = null!;
+}
+
+public sealed class CorporateAccountBalancesModel
+{
+    public decimal Balance { get; set; }
+    public decimal AvailableAmount { get; set; }
+    public decimal BlockedAmount { get; set; }
+    public decimal? CardBlocks { get; set; }
+    public decimal? OtherBlocks { get; set; }
+}
+
+public sealed class GetCorporateAccountRequisitesResponse
+{
+    public CorporateAccountRequisitesModel Requisites { get; set; } = null!;
+}
+
+public sealed class CorporateAccountRequisitesModel
+{
+    public string AccountNumber { get; set; } = string.Empty;
+    public string? BeneficiaryName { get; set; }
+    public string? BeneficiaryNameEng { get; set; }
+    public string? BankCode { get; set; }
+    public string? ReferenceNumber { get; set; }
+}
+
+public sealed class GetCorporateAccountRestrictionsResponse
+{
+    public IReadOnlyList<CorporateAccountRestrictionModel> Restrictions { get; set; } = [];
+}
+
+public sealed class CorporateAccountRestrictionModel
+{
+    public RestrictionType Type { get; set; }
+    public decimal Amount { get; set; }
+    public string? Reference { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public sealed class GatewayFileResponse
+{
+    public required byte[] Content { get; init; }
+    public string? ContentType { get; init; }
+    public string? FileName { get; init; }
 }
 
 public sealed class RenameCorporateAccountRequest

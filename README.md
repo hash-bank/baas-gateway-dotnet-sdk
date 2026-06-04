@@ -1,17 +1,17 @@
-# Hash BaaS Gateway .NET SDK
+# HashBank Gateway .NET SDK
 
-![SDK](https://img.shields.io/badge/SDK-Hash%20BaaS-111827?style=for-the-badge)
+![SDK](https://img.shields.io/badge/SDK-HashBank%20Gateway-111827?style=for-the-badge)
 ![.NET](https://img.shields.io/badge/.NET-8%20%7C%2010-512BD4?style=for-the-badge&logo=dotnet)
 ![RFC 9421](https://img.shields.io/badge/RFC%209421-HTTP%20Signatures-0F766E?style=for-the-badge)
 ![Ed25519](https://img.shields.io/badge/Ed25519-Signatures-1F2937?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-0A0A0A?style=for-the-badge)
 
-Production-ready .NET SDK and NuGet package for Hash BaaS Gateway authorization, request signing, response verification, and Gateway API usage.
+Production-ready .NET SDK and NuGet package for HashBank Gateway authorization, request signing, response verification, and Gateway API usage.
 
-The SDK removes the low-level complexity of Hash BaaS Gateway integration:
+The SDK removes the low-level complexity of HashBank Gateway integration:
 
 - Generates and validates Ed25519 key pairs.
-- Signs requests using the Hash BaaS RFC 9421 profile.
+- Signs requests using the HashBank Gateway RFC 9421 profile.
 - Adds required Gateway headers consistently.
 - Adds `Content-Digest` and `Idempotency-Key` for mutating requests.
 - Provides manual signed-response verification helper.
@@ -40,9 +40,9 @@ Store production private keys in your secret manager. Do not commit private keys
 sequenceDiagram
     autonumber
     participant App as Client Application
-    participant SDK as Hash BaaS Gateway .NET SDK
+    participant SDK as HashBank Gateway .NET SDK
     participant Portal as Developer Portal
-    participant Gateway as Hash BaaS Gateway
+    participant Gateway as HashBank Gateway
 
     App->>SDK: Configure clientId, product definition, private/public PEM
     SDK->>SDK: Derive keyId from public key
@@ -70,7 +70,7 @@ hash-baas-gateway-dotnet-sdk
 
 ## Gateway Authorization Model
 
-Hash BaaS Gateway uses signed HTTP requests instead of bearer-token authorization for partner-facing Gateway operations.
+HashBank Gateway uses signed HTTP requests instead of bearer-token authorization for partner-facing Gateway operations.
 
 Embedded Gateway requests must include:
 
@@ -175,11 +175,14 @@ var terms = await gateway.GetTermsAsync("en-US");
 
 ## .NET Typed Gateway Client
 
-### System and Terms
+### System, Terms, and Country Eligibility
 
 ```csharp
 await gateway.GetStatusAsync();
 await gateway.GetTermsAsync("en-US");
+
+var requirements = await gateway.GetCountryOnboardingRequirementsAsync();
+var georgia = await gateway.GetCountryOnboardingRequirementsAsync("GE");
 ```
 
 ### Onboarding
@@ -197,10 +200,11 @@ await gateway.DeactivatePersonAsync(person.Person.Id);
 
 ```csharp
 var check = await gateway.CreateKycCheckAsync(createKycCheckRequest);
+var kycCheckId = Guid.Parse(check.KycCheckId);
 
 await gateway.UploadKycDocumentAsync(new UploadKycDocumentRequest
 {
-    KycCheckId = check.KycCheck.Id.ToString(),
+    KycCheckId = check.KycCheckId,
     Type = IdvDocumentType.IDVDocument,
     Subtype = IdvDocumentSubtype.Passport,
     FileContent = File.OpenRead("passport.jpg"),
@@ -210,19 +214,20 @@ await gateway.UploadKycDocumentAsync(new UploadKycDocumentRequest
     Issuer = "GEO"
 });
 
-await gateway.InitiateKycCheckAsync(check.KycCheck.Id);
-await gateway.GetKycCheckAsync(check.KycCheck.Id);
-await gateway.DeleteKycCheckAsync(check.KycCheck.Id);
+await gateway.InitiateKycCheckAsync(kycCheckId);
+await gateway.GetKycCheckAsync(kycCheckId);
+await gateway.DeleteKycCheckAsync(kycCheckId);
 ```
 
 ### Accounts
 
 ```csharp
 var account = await gateway.CreateAccountAsync(createAccountRequest);
+var accountId = Guid.Parse(account.Account.Id);
 
-await gateway.GetAccountAsync(account.Account.Id);
-await gateway.GetAccountCardsAsync(account.Account.Id);
-await gateway.CloseAccountAsync(account.Account.Id, new CloseAccountPatchRequest
+await gateway.GetAccountAsync(accountId);
+await gateway.GetAccountCardsAsync(accountId);
+await gateway.CloseAccountAsync(accountId, new CloseAccountPatchRequest
 {
     CloseReason = AccountCloseReason.ClosedByClient
 });
@@ -232,24 +237,25 @@ await gateway.CloseAccountAsync(account.Account.Id, new CloseAccountPatchRequest
 
 ```csharp
 var card = await gateway.CreateCardAsync(createCardRequest);
+var cardId = Guid.Parse(card.Card.Id);
 
-await gateway.GetCardAsync(card.Card.Id);
-await gateway.ActivateCardAsync(card.Card.Id);
-await gateway.PrepareDigitalCardViewAsync(card.Card.Id);
-await gateway.BlockCardAsync(card.Card.Id, new BlockCardRequest
+await gateway.GetCardAsync(cardId);
+await gateway.ActivateCardAsync(cardId);
+await gateway.PrepareDigitalCardViewAsync(cardId);
+await gateway.BlockCardAsync(cardId, new BlockCardRequest
 {
     BlockType = ApiBlockType.BlockedByCardholder
 });
-await gateway.UnblockCardAsync(card.Card.Id);
-await gateway.ResetCardPinCounterAsync(card.Card.Id);
+await gateway.UnblockCardAsync(cardId);
+await gateway.ResetCardPinCounterAsync(cardId);
 ```
 
 ### PIN Management
 
 ```csharp
-var pinKey = await gateway.GeneratePinKeyAsync(card.Card.Id, acceptLanguage: "en-US");
+var pinKey = await gateway.GeneratePinKeyAsync(cardId, acceptLanguage: "en-US");
 
-await gateway.SetPinAsync(card.Card.Id, new SetPinRequest
+await gateway.SetPinAsync(cardId, new SetPinRequest
 {
     PinSet = new PinSetRequestModel
     {
@@ -286,6 +292,9 @@ var accounts = await gateway.ListCorporateAccountsAsync(
 
 var accountId = accounts.Accounts[0].AccountId;
 await gateway.GetCorporateAccountAsync(bearerToken, accountId);
+await gateway.GetCorporateAccountBalancesAsync(bearerToken, accountId);
+await gateway.GetCorporateAccountRequisitesAsync(bearerToken, accountId);
+await gateway.GetCorporateAccountRestrictionsAsync(bearerToken, accountId);
 await gateway.RenameCorporateAccountAsync(
     bearerToken,
     accountId,
@@ -306,6 +315,20 @@ await gateway.CloseCorporateAccountAsync(
     bearerToken,
     accountId,
     new CloseCorporateAccountRequest { CloseReason = AccountCloseReason.ClosedByClient });
+```
+
+Download statement files:
+
+```csharp
+var statement = await gateway.DownloadCorporateAccountStatementAsync(
+    bearerToken,
+    accountId,
+    StatementFormat.Xlsx,
+    fromDate: new DateOnly(2026, 1, 1),
+    toDate: new DateOnly(2026, 1, 31),
+    language: "en");
+
+File.WriteAllBytes(statement.FileName ?? "statement.xlsx", statement.Content);
 ```
 
 ### Corporate Cards
@@ -345,9 +368,33 @@ var cards = await gateway.ListCorporateCardsAsync(
 var cardId = cards.Cards[0].CardId;
 await gateway.GetCorporateCardAsync(bearerToken, cardId);
 await gateway.ActivateCorporateCardAsync(bearerToken, cardId);
+await gateway.PrepareCorporateDigitalCardViewAsync(bearerToken, cardId);
 await gateway.FreezeCorporateCardAsync(bearerToken, cardId);
 await gateway.UnfreezeCorporateCardAsync(bearerToken, cardId);
+await gateway.ResetCorporateCardPinCounterAsync(bearerToken, cardId);
 await gateway.CloseCorporateCardAsync(bearerToken, cardId);
+```
+
+Corporate PIN flow:
+
+```csharp
+var corporatePinKey = await gateway.GenerateCorporatePinKeyAsync(
+    bearerToken,
+    cardId,
+    acceptLanguage: "en-US");
+
+await gateway.SetCorporatePinAsync(
+    bearerToken,
+    cardId,
+    new SetPinRequest
+    {
+        PinSet = new PinSetRequestModel
+        {
+            RequestId = corporatePinKey.PinKey.RequestId,
+            PinBlock = encryptedPinBlockHex,
+            EncryptedSessionZpk = encryptedSessionZpkBase64
+        }
+    });
 ```
 
 ### Corporate Transactions

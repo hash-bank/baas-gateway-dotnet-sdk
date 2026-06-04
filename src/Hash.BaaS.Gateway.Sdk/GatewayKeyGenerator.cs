@@ -5,7 +5,7 @@ using NSec.Cryptography;
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// Generates Ed25519 key pairs and derives Hash BaaS Gateway key IDs.
+/// Generates Ed25519 key pairs and derives HashBank Gateway key IDs.
 /// </summary>
 public static class GatewayKeyGenerator
 {

@@ -24,4 +24,6 @@ public enum PersonExpectedTransactionType { LocalWireTransfers = 1, CardPayments
 public enum BusinessActivityType { Other, AntiqueItems, UnregulatedServiceProvider, NonentrepreneurialLegalEntity, NongovernmentalOrganization, NonresidentAssetManagementCompany, ProductionNuclearMaterials, GrantIssuing, VirtualAssetServiceProvider, ProductionTradeMilitaryEquipment, OrganizerGames, MetalPreciousStones, PetroleumProducts, SoftwareServiceProvider, ReligiousOrganization, NonresidentInvestmentFund, TrustServiceProvider, CharitableOrganization, SportsClub, RealEstateAgency, PharmaceuticalProducts, CFDTradingCompany, ChemicalProducts, RelatedPreciousMetalsStones, HoldingCompany }
 public enum PersonStatus { Active, Deactivated, Rejected }
 public enum RiskProfile { Low, Medium, High }
+public enum RestrictionType { Incasso, Seizure }
+public enum StatementFormat { Xlsx, Xml, Pdf }
 public enum TransactionStatus { Authorized, Posted, Reversed, Released, Declined }

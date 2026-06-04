@@ -6,7 +6,7 @@ using NSec.Cryptography;
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// Signs outbound HTTP requests using the Hash BaaS Gateway RFC 9421 profile.
+/// Signs outbound HTTP requests using the HashBank Gateway RFC 9421 profile.
 /// </summary>
 public static class GatewayRequestSigner
 {

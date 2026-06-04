@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// Typed client for Hash BaaS Gateway v1 endpoints.
+/// Typed client for HashBank Gateway v1 endpoints.
 /// </summary>
 public sealed class HashBaasGatewayClient
 {
@@ -42,6 +42,15 @@ public sealed class HashBaasGatewayClient
             if (!string.IsNullOrWhiteSpace(acceptLanguage))
                 request.Headers.AcceptLanguage.ParseAdd(acceptLanguage);
         });
+
+    public Task<CountryOnboardingRequirementsResponse> GetCountryOnboardingRequirementsAsync(string? countryCode = null, CancellationToken ct = default)
+    {
+        var query = string.IsNullOrWhiteSpace(countryCode)
+            ? string.Empty
+            : $"?country_code={Uri.EscapeDataString(countryCode.Trim().ToUpperInvariant())}";
+
+        return SendAsync<CountryOnboardingRequirementsResponse>(HttpMethod.Get, $"v1/embedded/countries/onboarding-requirements{query}", null, ct);
+    }
 
     public Task<CreatePersonResponse> CreatePersonAsync(CreatePersonRequest request, CancellationToken ct = default)
         => SendAsync<CreatePersonResponse>(HttpMethod.Post, "v1/embedded/persons", request, ct);
@@ -182,13 +191,46 @@ public sealed class HashBaasGatewayClient
         => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close", bearerToken, null, ct);
 
     public Task<GetCorporateAccountResponse> CloseCorporateAccountAsync(string bearerToken, Guid accountId, CloseCorporateAccountRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Patch, $"v1/corporate/accounts/{accountId}/close", bearerToken, request, ct);
+    {
+        var reason = request.CloseReason.HasValue
+            ? $"?close_reason={Uri.EscapeDataString(request.CloseReason.Value.ToString())}"
+            : string.Empty;
+
+        return SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close{reason}", bearerToken, null, ct);
+    }
 
     public Task<GetCorporateAccountResponse> RenameCorporateAccountAsync(string bearerToken, Guid accountId, RenameCorporateAccountRequest request, CancellationToken ct = default)
         => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Patch, $"v1/corporate/accounts/{accountId}/name", bearerToken, request, ct);
 
     public Task<GetCorporateAccountResponse> AddCorporateAccountCurrencyAsync(string bearerToken, Guid accountId, AddCorporateAccountCurrencyRequest request, CancellationToken ct = default)
         => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Post, $"v1/corporate/accounts/{accountId}/currencies", bearerToken, request, ct);
+
+    public Task<GetCorporateAccountBalancesResponse> GetCorporateAccountBalancesAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
+        => SendCorporateAsync<GetCorporateAccountBalancesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/balances", bearerToken, null, ct);
+
+    public Task<GetCorporateAccountRequisitesResponse> GetCorporateAccountRequisitesAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
+        => SendCorporateAsync<GetCorporateAccountRequisitesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/requisites", bearerToken, null, ct);
+
+    public Task<GetCorporateAccountRestrictionsResponse> GetCorporateAccountRestrictionsAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
+        => SendCorporateAsync<GetCorporateAccountRestrictionsResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/restrictions", bearerToken, null, ct);
+
+    public Task<GatewayFileResponse> DownloadCorporateAccountStatementAsync(
+        string bearerToken,
+        Guid accountId,
+        StatementFormat format,
+        DateOnly fromDate,
+        DateOnly toDate,
+        string language = "en",
+        CancellationToken ct = default)
+    {
+        var query = new StringBuilder()
+            .Append("?format=").Append(Uri.EscapeDataString(format.ToString().ToLowerInvariant()))
+            .Append("&from_date=").Append(Uri.EscapeDataString(fromDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)))
+            .Append("&to_date=").Append(Uri.EscapeDataString(toDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)))
+            .Append("&lang=").Append(Uri.EscapeDataString(string.IsNullOrWhiteSpace(language) ? "en" : language.Trim()));
+
+        return SendCorporateFileAsync(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/download-statement{query}", bearerToken, ct);
+    }
 
     public Task<CreateCorporateCardResponse> CreateCorporateCardAsync(string bearerToken, CreateCorporateCardRequest request, CancellationToken ct = default)
         => SendCorporateAsync<CreateCorporateCardResponse>(HttpMethod.Post, "v1/corporate/cards", bearerToken, request, ct);
@@ -230,6 +272,33 @@ public sealed class HashBaasGatewayClient
 
     public Task<CloseCorporateCardResponse> CloseCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
         => SendCorporateAsync<CloseCorporateCardResponse>(HttpMethod.Delete, $"v1/corporate/cards/{cardId}/close", bearerToken, null, ct);
+
+    public Task<DigitalCardViewResponse> PrepareCorporateDigitalCardViewAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
+        => SendCorporateAsync<DigitalCardViewResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/digital-card-view", bearerToken, null, ct);
+
+    public Task<ResetPinCounterResponse> ResetCorporateCardPinCounterAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
+        => SendCorporateAsync<ResetPinCounterResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/reset-pin-counter", bearerToken, null, ct);
+
+    public Task<GeneratePinKeyResponse> GenerateCorporatePinKeyAsync(
+        string bearerToken,
+        Guid cardId,
+        GeneratePinKeyRequest? request = null,
+        string? acceptLanguage = null,
+        CancellationToken ct = default)
+        => SendCorporateAsync<GeneratePinKeyResponse>(
+            HttpMethod.Post,
+            $"v1/corporate/cards/{cardId}/pin/key",
+            bearerToken,
+            request ?? new GeneratePinKeyRequest(),
+            ct,
+            httpRequest =>
+            {
+                if (!string.IsNullOrWhiteSpace(acceptLanguage))
+                    httpRequest.Headers.AcceptLanguage.ParseAdd(acceptLanguage);
+            });
+
+    public Task<SetPinResponse> SetCorporatePinAsync(string bearerToken, Guid cardId, SetPinRequest request, CancellationToken ct = default)
+        => SendCorporateAsync<SetPinResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/pin/set", bearerToken, request, ct);
 
     public Task<ListCorporateTransactionsResponse> ListCorporateTransactionsAsync(
         string bearerToken,
@@ -301,7 +370,8 @@ public sealed class HashBaasGatewayClient
         string requestUri,
         string bearerToken,
         object? body,
-        CancellationToken ct)
+        CancellationToken ct,
+        Action<HttpRequestMessage>? configure = null)
     {
         if (string.IsNullOrWhiteSpace(bearerToken))
             throw new ArgumentException("Corporate Bearer token is required.", nameof(bearerToken));
@@ -309,7 +379,35 @@ public sealed class HashBaasGatewayClient
         return SendAsync<T>(method, requestUri, body, ct, request =>
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            configure?.Invoke(request);
         });
+    }
+
+    private async Task<GatewayFileResponse> SendCorporateFileAsync(
+        HttpMethod method,
+        string requestUri,
+        string bearerToken,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(bearerToken))
+            throw new ArgumentException("Corporate Bearer token is required.", nameof(bearerToken));
+
+        using var request = new HttpRequestMessage(method, requestUri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        using var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(response, ct).ConfigureAwait(false);
+
+        var content = response.Content is null
+            ? []
+            : await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+
+        return new GatewayFileResponse
+        {
+            Content = content,
+            ContentType = response.Content?.Headers.ContentType?.ToString(),
+            FileName = response.Content?.Headers.ContentDisposition?.FileNameStar
+                ?? response.Content?.Headers.ContentDisposition?.FileName?.Trim('"')
+        };
     }
 
     private async Task SendNoContentAsync(HttpMethod method, string requestUri, CancellationToken ct)

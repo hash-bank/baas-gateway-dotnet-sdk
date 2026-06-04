@@ -6,7 +6,7 @@ namespace Hash.BaaS.Gateway.Sdk;
 public sealed class GatewayApiException : HttpRequestException
 {
     public GatewayApiException(HttpResponseMessage response, string responseBody)
-        : base($"Hash BaaS Gateway returned {(int)response.StatusCode} {response.ReasonPhrase}.")
+        : base($"HashBank Gateway returned {(int)response.StatusCode} {response.ReasonPhrase}.")
     {
         StatusCode = response.StatusCode;
         ReasonPhrase = response.ReasonPhrase;

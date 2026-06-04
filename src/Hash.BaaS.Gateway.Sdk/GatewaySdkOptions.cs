@@ -1,7 +1,7 @@
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// Configuration required to sign Hash BaaS Gateway requests.
+/// Configuration required to sign HashBank Gateway requests.
 /// </summary>
 public sealed class GatewaySdkOptions
 {

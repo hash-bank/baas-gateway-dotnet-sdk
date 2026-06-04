@@ -6,7 +6,7 @@ using NSec.Cryptography;
 namespace Hash.BaaS.Gateway.Sdk;
 
 /// <summary>
-/// Verifies Hash BaaS Gateway response signatures.
+/// Verifies HashBank Gateway response signatures.
 /// </summary>
 public static class GatewayResponseVerifier
 {
