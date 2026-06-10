@@ -161,11 +161,10 @@ public sealed class HashBaasGatewayClient
     public Task<SetPinResponse> SetPinAsync(Guid cardId, SetPinRequest request, CancellationToken ct = default)
         => SendAsync<SetPinResponse>(HttpMethod.Post, $"v1/embedded/cards/{cardId}/pin/set", request, ct);
 
-    public Task<CreateCorporateAccountResponse> CreateCorporateAccountsAsync(string bearerToken, CreateCorporateAccountRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<CreateCorporateAccountResponse>(HttpMethod.Post, "v1/corporate/accounts", bearerToken, request, ct);
+    public Task<CreateCorporateAccountResponse> CreateCorporateAccountsAsync(CreateCorporateAccountRequest request, CancellationToken ct = default)
+        => SendAsync<CreateCorporateAccountResponse>(HttpMethod.Post, "v1/corporate/accounts", request, ct);
 
     public Task<ListCorporateAccountsResponse> ListCorporateAccountsAsync(
-        string bearerToken,
         string? currency = null,
         IReadOnlyCollection<AccountStatus>? statuses = null,
         int fromRecord = 0,
@@ -181,41 +180,40 @@ public sealed class HashBaasGatewayClient
                 query.Append("&status=").Append(Uri.EscapeDataString(status.ToString()));
         }
 
-        return SendCorporateAsync<ListCorporateAccountsResponse>(HttpMethod.Get, $"v1/corporate/accounts{query}", bearerToken, null, ct);
+        return SendAsync<ListCorporateAccountsResponse>(HttpMethod.Get, $"v1/corporate/accounts{query}", null, ct);
     }
 
-    public Task<GetCorporateAccountResponse> GetCorporateAccountAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}", bearerToken, null, ct);
+    public Task<GetCorporateAccountResponse> GetCorporateAccountAsync(Guid accountId, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}", null, ct);
 
-    public Task<GetCorporateAccountResponse> CloseCorporateAccountAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close", bearerToken, null, ct);
+    public Task<GetCorporateAccountResponse> CloseCorporateAccountAsync(Guid accountId, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close", null, ct);
 
-    public Task<GetCorporateAccountResponse> CloseCorporateAccountAsync(string bearerToken, Guid accountId, CloseCorporateAccountRequest request, CancellationToken ct = default)
+    public Task<GetCorporateAccountResponse> CloseCorporateAccountAsync(Guid accountId, CloseCorporateAccountRequest request, CancellationToken ct = default)
     {
         var reason = request.CloseReason.HasValue
             ? $"?close_reason={Uri.EscapeDataString(request.CloseReason.Value.ToString())}"
             : string.Empty;
 
-        return SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close{reason}", bearerToken, null, ct);
+        return SendAsync<GetCorporateAccountResponse>(HttpMethod.Delete, $"v1/corporate/accounts/{accountId}/close{reason}", null, ct);
     }
 
-    public Task<GetCorporateAccountResponse> RenameCorporateAccountAsync(string bearerToken, Guid accountId, RenameCorporateAccountRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Patch, $"v1/corporate/accounts/{accountId}/name", bearerToken, request, ct);
+    public Task<GetCorporateAccountResponse> RenameCorporateAccountAsync(Guid accountId, RenameCorporateAccountRequest request, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountResponse>(HttpMethod.Patch, $"v1/corporate/accounts/{accountId}/name", request, ct);
 
-    public Task<GetCorporateAccountResponse> AddCorporateAccountCurrencyAsync(string bearerToken, Guid accountId, AddCorporateAccountCurrencyRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountResponse>(HttpMethod.Post, $"v1/corporate/accounts/{accountId}/currencies", bearerToken, request, ct);
+    public Task<GetCorporateAccountResponse> AddCorporateAccountCurrencyAsync(Guid accountId, AddCorporateAccountCurrencyRequest request, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountResponse>(HttpMethod.Post, $"v1/corporate/accounts/{accountId}/currencies", request, ct);
 
-    public Task<GetCorporateAccountBalancesResponse> GetCorporateAccountBalancesAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountBalancesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/balances", bearerToken, null, ct);
+    public Task<GetCorporateAccountBalancesResponse> GetCorporateAccountBalancesAsync(Guid accountId, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountBalancesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/balances", null, ct);
 
-    public Task<GetCorporateAccountRequisitesResponse> GetCorporateAccountRequisitesAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountRequisitesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/requisites", bearerToken, null, ct);
+    public Task<GetCorporateAccountRequisitesResponse> GetCorporateAccountRequisitesAsync(Guid accountId, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountRequisitesResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/requisites", null, ct);
 
-    public Task<GetCorporateAccountRestrictionsResponse> GetCorporateAccountRestrictionsAsync(string bearerToken, Guid accountId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateAccountRestrictionsResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/restrictions", bearerToken, null, ct);
+    public Task<GetCorporateAccountRestrictionsResponse> GetCorporateAccountRestrictionsAsync(Guid accountId, CancellationToken ct = default)
+        => SendAsync<GetCorporateAccountRestrictionsResponse>(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/restrictions", null, ct);
 
     public Task<GatewayFileResponse> DownloadCorporateAccountStatementAsync(
-        string bearerToken,
         Guid accountId,
         StatementFormat format,
         DateOnly fromDate,
@@ -229,17 +227,16 @@ public sealed class HashBaasGatewayClient
             .Append("&to_date=").Append(Uri.EscapeDataString(toDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)))
             .Append("&lang=").Append(Uri.EscapeDataString(string.IsNullOrWhiteSpace(language) ? "en" : language.Trim()));
 
-        return SendCorporateFileAsync(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/download-statement{query}", bearerToken, ct);
+        return SendFileAsync(HttpMethod.Get, $"v1/corporate/accounts/{accountId}/download-statement{query}", ct);
     }
 
-    public Task<CreateCorporateCardResponse> CreateCorporateCardAsync(string bearerToken, CreateCorporateCardRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<CreateCorporateCardResponse>(HttpMethod.Post, "v1/corporate/cards", bearerToken, request, ct);
+    public Task<CreateCorporateCardResponse> CreateCorporateCardAsync(CreateCorporateCardRequest request, CancellationToken ct = default)
+        => SendAsync<CreateCorporateCardResponse>(HttpMethod.Post, "v1/corporate/cards", request, ct);
 
-    public Task<ListCorporateCardDesignTypesResponse> ListCorporateCardDesignTypesAsync(string bearerToken, CancellationToken ct = default)
-        => SendCorporateAsync<ListCorporateCardDesignTypesResponse>(HttpMethod.Get, "v1/corporate/cards/design-types", bearerToken, null, ct);
+    public Task<ListCorporateCardDesignTypesResponse> ListCorporateCardDesignTypesAsync(CancellationToken ct = default)
+        => SendAsync<ListCorporateCardDesignTypesResponse>(HttpMethod.Get, "v1/corporate/cards/design-types", null, ct);
 
     public Task<ListCorporateCardsResponse> ListCorporateCardsAsync(
-        string bearerToken,
         Guid? accountId = null,
         IReadOnlyCollection<CardStatus>? cardStatuses = null,
         int fromRecord = 0,
@@ -255,40 +252,38 @@ public sealed class HashBaasGatewayClient
                 query.Append("&card_statuses=").Append(Uri.EscapeDataString(status.ToString()));
         }
 
-        return SendCorporateAsync<ListCorporateCardsResponse>(HttpMethod.Get, $"v1/corporate/cards{query}", bearerToken, null, ct);
+        return SendAsync<ListCorporateCardsResponse>(HttpMethod.Get, $"v1/corporate/cards{query}", null, ct);
     }
 
-    public Task<GetCorporateCardResponse> GetCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateCardResponse>(HttpMethod.Get, $"v1/corporate/cards/{cardId}", bearerToken, null, ct);
+    public Task<GetCorporateCardResponse> GetCorporateCardAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<GetCorporateCardResponse>(HttpMethod.Get, $"v1/corporate/cards/{cardId}", null, ct);
 
-    public Task<FreezeCorporateCardResponse> FreezeCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<FreezeCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/freeze", bearerToken, null, ct);
+    public Task<FreezeCorporateCardResponse> FreezeCorporateCardAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<FreezeCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/freeze", null, ct);
 
-    public Task<UnfreezeCorporateCardResponse> UnfreezeCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<UnfreezeCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/unfreeze", bearerToken, null, ct);
+    public Task<UnfreezeCorporateCardResponse> UnfreezeCorporateCardAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<UnfreezeCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/unfreeze", null, ct);
 
-    public Task<ActivateCorporateCardResponse> ActivateCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<ActivateCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/activate", bearerToken, null, ct);
+    public Task<ActivateCorporateCardResponse> ActivateCorporateCardAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<ActivateCorporateCardResponse>(HttpMethod.Patch, $"v1/corporate/cards/{cardId}/activate", null, ct);
 
-    public Task<CloseCorporateCardResponse> CloseCorporateCardAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<CloseCorporateCardResponse>(HttpMethod.Delete, $"v1/corporate/cards/{cardId}/close", bearerToken, null, ct);
+    public Task<CloseCorporateCardResponse> CloseCorporateCardAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<CloseCorporateCardResponse>(HttpMethod.Delete, $"v1/corporate/cards/{cardId}/close", null, ct);
 
-    public Task<DigitalCardViewResponse> PrepareCorporateDigitalCardViewAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<DigitalCardViewResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/digital-card-view", bearerToken, null, ct);
+    public Task<DigitalCardViewResponse> PrepareCorporateDigitalCardViewAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<DigitalCardViewResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/digital-card-view", null, ct);
 
-    public Task<ResetPinCounterResponse> ResetCorporateCardPinCounterAsync(string bearerToken, Guid cardId, CancellationToken ct = default)
-        => SendCorporateAsync<ResetPinCounterResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/reset-pin-counter", bearerToken, null, ct);
+    public Task<ResetPinCounterResponse> ResetCorporateCardPinCounterAsync(Guid cardId, CancellationToken ct = default)
+        => SendAsync<ResetPinCounterResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/reset-pin-counter", null, ct);
 
     public Task<GeneratePinKeyResponse> GenerateCorporatePinKeyAsync(
-        string bearerToken,
         Guid cardId,
         GeneratePinKeyRequest? request = null,
         string? acceptLanguage = null,
         CancellationToken ct = default)
-        => SendCorporateAsync<GeneratePinKeyResponse>(
+        => SendAsync<GeneratePinKeyResponse>(
             HttpMethod.Post,
             $"v1/corporate/cards/{cardId}/pin/key",
-            bearerToken,
             request ?? new GeneratePinKeyRequest(),
             ct,
             httpRequest =>
@@ -297,11 +292,10 @@ public sealed class HashBaasGatewayClient
                     httpRequest.Headers.AcceptLanguage.ParseAdd(acceptLanguage);
             });
 
-    public Task<SetPinResponse> SetCorporatePinAsync(string bearerToken, Guid cardId, SetPinRequest request, CancellationToken ct = default)
-        => SendCorporateAsync<SetPinResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/pin/set", bearerToken, request, ct);
+    public Task<SetPinResponse> SetCorporatePinAsync(Guid cardId, SetPinRequest request, CancellationToken ct = default)
+        => SendAsync<SetPinResponse>(HttpMethod.Post, $"v1/corporate/cards/{cardId}/pin/set", request, ct);
 
     public Task<ListCorporateTransactionsResponse> ListCorporateTransactionsAsync(
-        string bearerToken,
         Guid? cardId = null,
         string? accountNumber = null,
         string? currency = null,
@@ -338,11 +332,11 @@ public sealed class HashBaasGatewayClient
         if (toDate.HasValue)
             query.Append("&to_date=").Append(Uri.EscapeDataString(toDate.Value.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)));
 
-        return SendCorporateAsync<ListCorporateTransactionsResponse>(HttpMethod.Get, $"v1/corporate/transactions{query}", bearerToken, null, ct);
+        return SendAsync<ListCorporateTransactionsResponse>(HttpMethod.Get, $"v1/corporate/transactions{query}", null, ct);
     }
 
-    public Task<GetCorporateTransactionResponse> GetCorporateTransactionAsync(string bearerToken, long transactionId, CancellationToken ct = default)
-        => SendCorporateAsync<GetCorporateTransactionResponse>(HttpMethod.Get, $"v1/corporate/transactions/{transactionId}", bearerToken, null, ct);
+    public Task<GetCorporateTransactionResponse> GetCorporateTransactionAsync(long transactionId, CancellationToken ct = default)
+        => SendAsync<GetCorporateTransactionResponse>(HttpMethod.Get, $"v1/corporate/transactions/{transactionId}", null, ct);
 
     private async Task<T> SendAsync<T>(
         HttpMethod method,
@@ -365,35 +359,12 @@ public sealed class HashBaasGatewayClient
         return await ReadSuccessAsync<T>(response, ct).ConfigureAwait(false);
     }
 
-    private Task<T> SendCorporateAsync<T>(
+    private async Task<GatewayFileResponse> SendFileAsync(
         HttpMethod method,
         string requestUri,
-        string bearerToken,
-        object? body,
-        CancellationToken ct,
-        Action<HttpRequestMessage>? configure = null)
-    {
-        if (string.IsNullOrWhiteSpace(bearerToken))
-            throw new ArgumentException("Corporate Bearer token is required.", nameof(bearerToken));
-
-        return SendAsync<T>(method, requestUri, body, ct, request =>
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            configure?.Invoke(request);
-        });
-    }
-
-    private async Task<GatewayFileResponse> SendCorporateFileAsync(
-        HttpMethod method,
-        string requestUri,
-        string bearerToken,
         CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(bearerToken))
-            throw new ArgumentException("Corporate Bearer token is required.", nameof(bearerToken));
-
         using var request = new HttpRequestMessage(method, requestUri);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
         using var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
         await EnsureSuccessAsync(response, ct).ConfigureAwait(false);
 
