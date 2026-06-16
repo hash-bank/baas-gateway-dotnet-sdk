@@ -170,7 +170,12 @@ var options = new GatewaySdkOptions
 
 var gateway = HashBaasGatewayClient.Create(options);
 
-var terms = await gateway.GetTermsAsync("en-US");
+// Terms are returned as a product-scoped, active-only list.
+var response = await gateway.GetTermsAsync("en-US");
+foreach (var term in response.Terms)
+{
+    Console.WriteLine($"{term.TermId} {term.TermName} (mandatory: {term.IsMandatory})");
+}
 ```
 
 ## .NET Typed Gateway Client
@@ -179,7 +184,12 @@ var terms = await gateway.GetTermsAsync("en-US");
 
 ```csharp
 await gateway.GetStatusAsync();
-await gateway.GetTermsAsync("en-US");
+
+// GetTermsAsync returns a product-scoped, active-only list of terms.
+// Response shape: { "terms": [ { term_id, term_name, term_title, term_content, url, is_mandatory } ] }
+var termsResponse = await gateway.GetTermsAsync("en-US");
+IReadOnlyList<TermModel> terms = termsResponse.Terms;
+var mandatoryTermIds = terms.Where(t => t.IsMandatory).Select(t => t.TermId).ToArray();
 
 var requirements = await gateway.GetCountryOnboardingRequirementsAsync();
 var georgia = await gateway.GetCountryOnboardingRequirementsAsync("GE");
@@ -570,6 +580,15 @@ hash-baas-gateway-dotnet-sdk/
 - Use response verification when the platform public key is available.
 - Do not commit private keys.
 - Do not reuse demo keys in production.
+
+## Changelog
+
+### 2.0.0
+
+- BREAKING: `GET /v1/embedded/terms` now returns a product-scoped, active-only **list** of terms instead of a single term.
+  - `GetTermsResponse.Term` (single `TermModel`) was removed and replaced by `GetTermsResponse.Terms` (`IReadOnlyList<TermModel>`).
+  - `TermModel` now carries `TermId` (long?), `TermName`, `TermTitle`, `TermContent`, `Url` (nullable), and `IsMandatory` (bool), matching the wire JSON `{ "terms": [ { "term_id", "term_name", "term_title", "term_content", "url", "is_mandatory" } ] }`.
+  - Migration: replace `response.Term` reads with iteration over `response.Terms`.
 
 ## License
 

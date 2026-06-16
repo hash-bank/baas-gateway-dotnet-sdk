@@ -11,7 +11,7 @@ public sealed class StatusResponse
 
 public sealed class GetTermsResponse
 {
-    public required TermModel Term { get; init; }
+    public IReadOnlyList<TermModel> Terms { get; init; } = [];
 }
 
 public sealed class CountryOnboardingRequirementsResponse
@@ -34,8 +34,10 @@ public sealed class TermModel
 {
     public long? TermId { get; init; }
     public string? TermName { get; init; }
+    public string? TermTitle { get; init; }
     public string? TermContent { get; init; }
     public string? Url { get; init; }
+    public bool IsMandatory { get; init; }
 }
 
 public sealed class CreatePersonRequest
