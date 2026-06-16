@@ -732,3 +732,49 @@ public sealed class CorporateTransactionModel
     public string? MerchantCategory { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
+
+// ── Corporate FX: exchange + rates ──────────────────────────────────────────
+
+/// <summary>Request body for POST /v1/corporate/transactions/exchanges — own-accounts market-rate FX.</summary>
+public sealed class MakeCorporateExchangeRequest
+{
+    /// <summary>Source account number (debited leg). Required.</summary>
+    public string? FromAccountNumber { get; set; }
+
+    /// <summary>Target account number (credited leg). Required. May equal the source for an own-account conversion.</summary>
+    public string? ToAccountNumber { get; set; }
+
+    /// <summary>Amount to exchange, in the source currency. Must be at least 1.</summary>
+    public decimal Amount { get; set; }
+
+    /// <summary>Source currency (ISO 4217, three uppercase letters). Required.</summary>
+    public string? Currency { get; set; }
+
+    /// <summary>Target currency (ISO 4217). Required. Must differ from the source currency.</summary>
+    public string? ToCurrency { get; set; }
+}
+
+/// <summary>Response for POST /v1/corporate/transactions/exchanges — identifier of the accepted exchange.</summary>
+public sealed class MakeCorporateExchangeResponse
+{
+    public long Id { get; set; }
+}
+
+/// <summary>Response for GET /v1/corporate/rates when <c>amount</c> is omitted — the sell/buy rate board.</summary>
+public sealed class CorporateRateBoardResponse
+{
+    public string From { get; set; } = string.Empty;
+    public string To { get; set; } = string.Empty;
+    public decimal SellRate { get; set; }
+    public decimal BuyRate { get; set; }
+}
+
+/// <summary>Response for GET /v1/corporate/rates when <c>amount</c> is supplied — an indicative conversion quote.</summary>
+public sealed class CorporateConversionQuoteResponse
+{
+    public string From { get; set; } = string.Empty;
+    public string To { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public decimal ConvertedAmount { get; set; }
+    public decimal Rate { get; set; }
+}

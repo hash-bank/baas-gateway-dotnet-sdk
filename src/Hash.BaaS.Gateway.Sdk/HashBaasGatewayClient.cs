@@ -338,6 +338,35 @@ public sealed class HashBaasGatewayClient
     public Task<GetCorporateTransactionResponse> GetCorporateTransactionAsync(long transactionId, CancellationToken ct = default)
         => SendAsync<GetCorporateTransactionResponse>(HttpMethod.Get, $"v1/corporate/transactions/{transactionId}", null, ct);
 
+    /// <summary>
+    /// POST /v1/corporate/transactions/exchanges — executes an own-accounts, market-rate currency
+    /// exchange (the source/target accounts must both belong to the authenticated corporate customer).
+    /// Returns the accepted exchange operation id.
+    /// </summary>
+    public Task<MakeCorporateExchangeResponse> MakeCorporateExchangeAsync(MakeCorporateExchangeRequest request, CancellationToken ct = default)
+        => SendAsync<MakeCorporateExchangeResponse>(HttpMethod.Post, "v1/corporate/transactions/exchanges", request, ct);
+
+    /// <summary>
+    /// GET /v1/corporate/rates?from=&amp;to= — the current sell/buy FX rate board for a currency pair.
+    /// </summary>
+    public Task<CorporateRateBoardResponse> GetCorporateRateBoardAsync(string from, string to, CancellationToken ct = default)
+    {
+        var query = $"?from={Uri.EscapeDataString(from.Trim().ToUpperInvariant())}&to={Uri.EscapeDataString(to.Trim().ToUpperInvariant())}";
+        return SendAsync<CorporateRateBoardResponse>(HttpMethod.Get, $"v1/corporate/rates{query}", null, ct);
+    }
+
+    /// <summary>
+    /// GET /v1/corporate/rates?from=&amp;to=&amp;amount= — an indicative, customer-scoped conversion
+    /// quote for <paramref name="amount"/> of <paramref name="from"/> into <paramref name="to"/>.
+    /// </summary>
+    public Task<CorporateConversionQuoteResponse> GetCorporateConversionQuoteAsync(string from, string to, decimal amount, CancellationToken ct = default)
+    {
+        var query = $"?from={Uri.EscapeDataString(from.Trim().ToUpperInvariant())}"
+                    + $"&to={Uri.EscapeDataString(to.Trim().ToUpperInvariant())}"
+                    + $"&amount={Uri.EscapeDataString(amount.ToString(System.Globalization.CultureInfo.InvariantCulture))}";
+        return SendAsync<CorporateConversionQuoteResponse>(HttpMethod.Get, $"v1/corporate/rates{query}", null, ct);
+    }
+
     private async Task<T> SendAsync<T>(
         HttpMethod method,
         string requestUri,

@@ -93,17 +93,17 @@ X-Client-Id + X-Product-Code
 
 The SDK signs the product definition code exactly as sent in `X-Product-Code`.
 
-Corporate Gateway requests use the same HTTP signature profile plus a corporate Bearer token. The SDK automatically signs the `Authorization` header on corporate calls and does not send `X-Client-Id` on `v1/corporate/*` routes.
+Corporate Gateway requests (`v1/corporate/*`) use the **same** RFC 9421 HTTP signature profile and the **same** signed header set as embedded — there is **no** bearer token and **no** `Authorization` header. The SDK signs corporate requests exactly like embedded ones (including `X-Client-Id`); the corporate customer is resolved from the signing key, not from a token.
 
-Corporate Gateway requests must include:
+Corporate Gateway requests include the same headers as embedded:
 
 | Header / Option | Example | Description |
 | --- | --- | --- |
-| `Authorization` | `Bearer eyJ...` | Corporate customer access token |
+| `X-Client-Id` | `00000000-0000-0000-0000-000000000000` | Developer Portal client identifier |
 | `X-Product-Code` | `TEST_PRODUCT` | Product definition code received by Gateway |
 | `X-Audit-User-Id` | `my-service` | Calling service or user identifier |
 | `X-Audit-Source-Type` | `Backend` | Calling channel |
-| `Signature-Input` | `sig1=(...)` | RFC 9421 signature metadata, including `authorization` |
+| `Signature-Input` | `sig1=(...)` | RFC 9421 signature metadata |
 | `Signature` | `sig1=:...:` | Ed25519 signature |
 | `Content-Digest` | `sha-256=:...:` | Required for body-bearing and mutating requests |
 | `Idempotency-Key` | GUID | Required for mutating requests |
@@ -268,13 +268,10 @@ await gateway.SetPinAsync(cardId, new SetPinRequest
 
 ### Corporate Accounts
 
-Corporate endpoints require a Bearer token issued for the corporate customer. Pass it to each corporate method; the SDK signs the token-bearing request correctly.
+Corporate endpoints use the same Ed25519 HTTP-signature authorization as embedded — no bearer token is required or accepted; the corporate customer is resolved from the signing key.
 
 ```csharp
-var bearerToken = "<corporate-access-token>";
-
 var createdAccounts = await gateway.CreateCorporateAccountsAsync(
-    bearerToken,
     new CreateCorporateAccountRequest
     {
         Account = new CreateCorporateAccountModel
@@ -286,24 +283,21 @@ var createdAccounts = await gateway.CreateCorporateAccountsAsync(
     });
 
 var accounts = await gateway.ListCorporateAccountsAsync(
-    bearerToken,
     currency: "GEL",
     statuses: [AccountStatus.Active]);
 
 var accountId = accounts.Accounts[0].AccountId;
-await gateway.GetCorporateAccountAsync(bearerToken, accountId);
-await gateway.GetCorporateAccountBalancesAsync(bearerToken, accountId);
-await gateway.GetCorporateAccountRequisitesAsync(bearerToken, accountId);
-await gateway.GetCorporateAccountRestrictionsAsync(bearerToken, accountId);
+await gateway.GetCorporateAccountAsync(accountId);
+await gateway.GetCorporateAccountBalancesAsync(accountId);
+await gateway.GetCorporateAccountRequisitesAsync(accountId);
+await gateway.GetCorporateAccountRestrictionsAsync(accountId);
 await gateway.RenameCorporateAccountAsync(
-    bearerToken,
     accountId,
     new RenameCorporateAccountRequest
     {
         Account = new RenameCorporateAccountModel { Name = "Updated Corporate Account" }
     });
 await gateway.AddCorporateAccountCurrencyAsync(
-    bearerToken,
     accountId,
     new AddCorporateAccountCurrencyRequest { CurrencyCode = "EUR" });
 ```
@@ -312,7 +306,6 @@ Close is terminal:
 
 ```csharp
 await gateway.CloseCorporateAccountAsync(
-    bearerToken,
     accountId,
     new CloseCorporateAccountRequest { CloseReason = AccountCloseReason.ClosedByClient });
 ```
@@ -321,7 +314,6 @@ Download statement files:
 
 ```csharp
 var statement = await gateway.DownloadCorporateAccountStatementAsync(
-    bearerToken,
     accountId,
     StatementFormat.Xlsx,
     fromDate: new DateOnly(2026, 1, 1),
@@ -334,10 +326,9 @@ File.WriteAllBytes(statement.FileName ?? "statement.xlsx", statement.Content);
 ### Corporate Cards
 
 ```csharp
-var designTypes = await gateway.ListCorporateCardDesignTypesAsync(bearerToken);
+var designTypes = await gateway.ListCorporateCardDesignTypesAsync();
 
 var createdCard = await gateway.CreateCorporateCardAsync(
-    bearerToken,
     new CreateCorporateCardRequest
     {
         Card = new CreateCorporateCardModel
@@ -361,30 +352,27 @@ var createdCard = await gateway.CreateCorporateCardAsync(
     });
 
 var cards = await gateway.ListCorporateCardsAsync(
-    bearerToken,
     accountId: accountId,
     cardStatuses: [CardStatus.Active, CardStatus.Blocked]);
 
 var cardId = cards.Cards[0].CardId;
-await gateway.GetCorporateCardAsync(bearerToken, cardId);
-await gateway.ActivateCorporateCardAsync(bearerToken, cardId);
-await gateway.PrepareCorporateDigitalCardViewAsync(bearerToken, cardId);
-await gateway.FreezeCorporateCardAsync(bearerToken, cardId);
-await gateway.UnfreezeCorporateCardAsync(bearerToken, cardId);
-await gateway.ResetCorporateCardPinCounterAsync(bearerToken, cardId);
-await gateway.CloseCorporateCardAsync(bearerToken, cardId);
+await gateway.GetCorporateCardAsync(cardId);
+await gateway.ActivateCorporateCardAsync(cardId);
+await gateway.PrepareCorporateDigitalCardViewAsync(cardId);
+await gateway.FreezeCorporateCardAsync(cardId);
+await gateway.UnfreezeCorporateCardAsync(cardId);
+await gateway.ResetCorporateCardPinCounterAsync(cardId);
+await gateway.CloseCorporateCardAsync(cardId);
 ```
 
 Corporate PIN flow:
 
 ```csharp
 var corporatePinKey = await gateway.GenerateCorporatePinKeyAsync(
-    bearerToken,
     cardId,
     acceptLanguage: "en-US");
 
 await gateway.SetCorporatePinAsync(
-    bearerToken,
     cardId,
     new SetPinRequest
     {
@@ -401,7 +389,6 @@ await gateway.SetCorporatePinAsync(
 
 ```csharp
 var transactions = await gateway.ListCorporateTransactionsAsync(
-    bearerToken,
     cardId: cardId,
     accountNumber: "GE00...",
     currency: "GEL",
@@ -413,9 +400,31 @@ var transactions = await gateway.ListCorporateTransactionsAsync(
 if (transactions.Transactions.Count > 0)
 {
     await gateway.GetCorporateTransactionAsync(
-        bearerToken,
         transactions.Transactions[0].TransactionId);
 }
+```
+
+### Corporate FX — Rates & Exchange
+
+```csharp
+// Rate board for a pair (no amount).
+var board = await gateway.GetCorporateRateBoardAsync("USD", "GEL");
+// board.SellRate, board.BuyRate
+
+// Indicative, customer-scoped conversion quote (amount supplied).
+var quote = await gateway.GetCorporateConversionQuoteAsync("USD", "GEL", amount: 150m);
+// quote.ConvertedAmount, quote.Rate
+
+// Own-accounts, market-rate exchange. from == to is valid (each currency shares one IBAN).
+var exchange = await gateway.MakeCorporateExchangeAsync(new MakeCorporateExchangeRequest
+{
+    FromAccountNumber = "GE00...",
+    ToAccountNumber   = "GE00...",
+    Amount            = 150m,
+    Currency          = "USD",
+    ToCurrency        = "GEL",
+});
+// exchange.Id
 ```
 
 ### Error Handling
@@ -443,12 +452,7 @@ Body-less requests sign:
 "x-product-code" "x-client-id" "x-audit-source-type" "x-audit-user-id"
 ```
 
-Corporate body-less requests sign:
-
-```text
-"@method" "@target-uri" "@authority"
-"x-product-code" "x-audit-source-type" "x-audit-user-id" "authorization"
-```
+Corporate requests sign the **same** component set as the embedded requests (including `x-client-id`); there is no `authorization` component.
 
 Body-bearing and mutating requests sign:
 
@@ -456,15 +460,6 @@ Body-bearing and mutating requests sign:
 "@method" "@target-uri" "@authority"
 "content-digest" "content-type"
 "x-product-code" "x-client-id" "x-audit-source-type" "x-audit-user-id"
-"idempotency-key"
-```
-
-Corporate body-bearing and mutating requests sign:
-
-```text
-"@method" "@target-uri" "@authority"
-"content-digest" "content-type"
-"x-product-code" "x-audit-source-type" "x-audit-user-id" "authorization"
 "idempotency-key"
 ```
 
