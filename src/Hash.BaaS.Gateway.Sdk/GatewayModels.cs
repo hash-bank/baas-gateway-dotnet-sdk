@@ -32,12 +32,19 @@ public sealed class CountryOnboardingRequirementModel
 
 public sealed class TermModel
 {
+    /// <summary>Numeric id of a standardized term. Null for a custom term (use <see cref="TermCode"/>).</summary>
     public long? TermId { get; init; }
+
+    /// <summary>Text code of a custom company+product term. Null for a standardized term.</summary>
+    public string? TermCode { get; init; }
     public string? TermName { get; init; }
     public string? TermTitle { get; init; }
     public string? TermContent { get; init; }
     public string? Url { get; init; }
     public bool IsMandatory { get; init; }
+
+    /// <summary>The value to send in applied_term_and_conditions: numeric id or custom code.</summary>
+    public string? AppliedValue => TermId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? TermCode;
 }
 
 public sealed class CreatePersonRequest
