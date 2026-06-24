@@ -52,6 +52,42 @@ public sealed class HashBaasGatewayClient
         return SendAsync<CountryOnboardingRequirementsResponse>(HttpMethod.Get, $"v1/embedded/countries/onboarding-requirements{query}", null, ct);
     }
 
+    /// <summary>GET /v1/embedded/reference-data — the available onboarding catalog type slugs.</summary>
+    public Task<ReferenceDataTypesResponse> GetReferenceDataTypesAsync(CancellationToken ct = default)
+        => SendAsync<ReferenceDataTypesResponse>(HttpMethod.Get, "v1/embedded/reference-data", null, ct);
+
+    /// <summary>
+    /// GET /v1/embedded/reference-data/{type} — the active <c>{ code, name }</c> entries for one
+    /// catalog, localized via <paramref name="acceptLanguage"/> (en-US / ka-GE / uk-UA).
+    /// </summary>
+    public Task<ReferenceDataItemsResponse> GetReferenceDataAsync(string type, string? acceptLanguage = null, CancellationToken ct = default)
+        => SendAsync<ReferenceDataItemsResponse>(HttpMethod.Get, $"v1/embedded/reference-data/{Uri.EscapeDataString(type)}", null, ct, request =>
+        {
+            if (!string.IsNullOrWhiteSpace(acceptLanguage))
+                request.Headers.AcceptLanguage.ParseAdd(acceptLanguage);
+        });
+
+    /// <summary>
+    /// GET /v1/embedded/reference-data/bundle — many catalogs at once. Pass <paramref name="types"/>
+    /// to select specific catalogs, or omit it (null/empty) to fetch ALL. Localized via
+    /// <paramref name="acceptLanguage"/> (en-US / ka-GE / uk-UA).
+    /// </summary>
+    public Task<ReferenceDataBundleResponse> GetReferenceDataBundleAsync(
+        IReadOnlyCollection<string>? types = null,
+        string? acceptLanguage = null,
+        CancellationToken ct = default)
+    {
+        var query = types is { Count: > 0 }
+            ? $"?types={Uri.EscapeDataString(string.Join(",", types))}"
+            : string.Empty;
+
+        return SendAsync<ReferenceDataBundleResponse>(HttpMethod.Get, $"v1/embedded/reference-data/bundle{query}", null, ct, request =>
+        {
+            if (!string.IsNullOrWhiteSpace(acceptLanguage))
+                request.Headers.AcceptLanguage.ParseAdd(acceptLanguage);
+        });
+    }
+
     public Task<CreatePersonResponse> CreatePersonAsync(CreatePersonRequest request, CancellationToken ct = default)
         => SendAsync<CreatePersonResponse>(HttpMethod.Post, "v1/embedded/persons", request, ct);
 

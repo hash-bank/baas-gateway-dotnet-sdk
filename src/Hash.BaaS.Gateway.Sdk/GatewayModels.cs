@@ -47,6 +47,37 @@ public sealed class TermModel
     public string? AppliedValue => TermId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? TermCode;
 }
 
+// ── Reference data (onboarding catalogs) ────────────────────────────────────
+
+/// <summary>A single reference-data entry. Submit <see cref="Code"/> on person create/update.</summary>
+public sealed class ReferenceDataItem
+{
+    /// <summary>Stable code submitted during onboarding.</summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>Localized display name (falls back to the code when no localization exists).</summary>
+    public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>Response for GET /v1/embedded/reference-data — the available catalog type slugs.</summary>
+public sealed class ReferenceDataTypesResponse
+{
+    public IReadOnlyList<string> Types { get; set; } = [];
+}
+
+/// <summary>Response for GET /v1/embedded/reference-data/{type} — one catalog's active entries.</summary>
+public sealed class ReferenceDataItemsResponse
+{
+    public IReadOnlyList<ReferenceDataItem> Items { get; set; } = [];
+}
+
+/// <summary>Response for GET /v1/embedded/reference-data/bundle — many catalogs keyed by slug.</summary>
+public sealed class ReferenceDataBundleResponse
+{
+    public IReadOnlyDictionary<string, IReadOnlyList<ReferenceDataItem>> Catalogs { get; set; }
+        = new Dictionary<string, IReadOnlyList<ReferenceDataItem>>();
+}
+
 public sealed class CreatePersonRequest
 {
     public required CreatePersonModel Person { get; set; }
@@ -87,7 +118,8 @@ public class CreatePersonModel
     public string? Email { get; set; }
     public string? Mobile { get; set; }
     public required string DocumentNumber { get; set; }
-    public required DocumentType? DocumentType { get; set; }
+    /// <summary>Identity document type code. See GET /v1/embedded/reference-data/document_type.</summary>
+    public required string? DocumentType { get; set; }
     public required string DocumentIssueDate { get; set; }
     public required string DocumentExpiryDate { get; set; }
     public required string DocumentIssuingAuthority { get; set; }
@@ -105,14 +137,23 @@ public class CreatePersonModel
     public bool HasCrs { get; set; }
     public PersonCrsCountryModel[]? CrsCountries { get; set; }
     public bool HasGreenCard { get; set; }
-    public PersonExpectedTurnover? ExpectedTurnover { get; set; }
-    public PersonExpectedMonthlyIncome? ExpectedMonthlyIncome { get; set; }
-    public PersonSourceOfIncome[]? SourcesOfIncome { get; set; }
-    public required PersonExpectedTransactionType[] ExpectedTransactionTypes { get; set; }
-    public PersonAccountOpeningReason[]? AccountOpeningReasons { get; set; }
-    public RiskProfile? RiskProfile { get; set; }
-    public required EmploymentType EmploymentType { get; set; }
-    public EmploymentWorkType? EmploymentWorkType { get; set; }
+    // Reference-data CODES — fetch active values from GET /v1/embedded/reference-data/{type}.
+    /// <summary>Expected turnover code. See reference-data/expected_turnover.</summary>
+    public string? ExpectedTurnover { get; set; }
+    /// <summary>Expected monthly income code. See reference-data/expected_monthly_income.</summary>
+    public string? ExpectedMonthlyIncome { get; set; }
+    /// <summary>Source-of-income codes. See reference-data/source_of_income.</summary>
+    public string[]? SourcesOfIncome { get; set; }
+    /// <summary>Expected transaction type codes. See reference-data/expected_transaction_type.</summary>
+    public required string[] ExpectedTransactionTypes { get; set; }
+    /// <summary>Account opening reason codes. See reference-data/account_opening_reason.</summary>
+    public string[]? AccountOpeningReasons { get; set; }
+    /// <summary>Risk profile code. See reference-data/risk_profile.</summary>
+    public string? RiskProfile { get; set; }
+    /// <summary>Employment type code. See reference-data/employment_type.</summary>
+    public required string EmploymentType { get; set; }
+    /// <summary>Employment work type code. See reference-data/employment_work_type.</summary>
+    public string? EmploymentWorkType { get; set; }
     public PersonEmploymentDetailModel[]? EmploymentDetails { get; set; }
     public bool? IsSoleEntrepreneur { get; set; }
     public string? EntrepreneurTaxId { get; set; }
@@ -145,7 +186,8 @@ public class UpdatePersonModel
     public string? Email { get; set; }
     public string? Mobile { get; set; }
     public string? DocumentNumber { get; set; }
-    public DocumentType? DocumentType { get; set; }
+    /// <summary>Identity document type code. See reference-data/document_type.</summary>
+    public string? DocumentType { get; set; }
     public string? DocumentIssueDate { get; set; }
     public string? DocumentExpiryDate { get; set; }
     public string? DocumentIssuingAuthority { get; set; }
@@ -163,12 +205,12 @@ public class UpdatePersonModel
     public bool? HasCrs { get; set; }
     public bool? HasGreenCard { get; set; }
     public PersonCrsCountryModel[]? CrsCountries { get; set; }
-    public PersonExpectedTurnover? ExpectedTurnover { get; set; }
+    public string? ExpectedTurnover { get; set; }
     public string? ExpectedMonthlyIncomeCode { get; set; }
-    public PersonSourceOfIncome[]? SourcesOfIncome { get; set; }
-    public PersonExpectedTransactionType[]? ExpectedTransactionTypes { get; set; }
-    public PersonAccountOpeningReason[]? AccountOpeningReasons { get; set; }
-    public RiskProfile? RiskProfile { get; set; }
+    public string[]? SourcesOfIncome { get; set; }
+    public string[]? ExpectedTransactionTypes { get; set; }
+    public string[]? AccountOpeningReasons { get; set; }
+    public string? RiskProfile { get; set; }
     public int? EmploymentTypeId { get; set; }
     public PersonEmploymentDetailModel[]? EmploymentDetails { get; set; }
     public bool? IsEntrepreneur { get; set; }
@@ -200,7 +242,8 @@ public sealed class PersonEmploymentDetailModel
 {
     public required string CompanyName { get; set; }
     public required string Position { get; set; }
-    public required BusinessActivityType BusinessActivityType { get; set; }
+    /// <summary>Business activity type code. See reference-data/business_activity_type.</summary>
+    public required string BusinessActivityType { get; set; }
     public required string TaxId { get; set; }
     public string? Comment { get; set; }
 }
